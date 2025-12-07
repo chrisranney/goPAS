@@ -4,10 +4,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/chrisranney/gopas)](https://goreportcard.com/report/github.com/chrisranney/gopas)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/chrisranney/gopas)](https://go.dev/)
+[![Coverage](https://img.shields.io/badge/coverage-46.5%25-yellow)](https://github.com/chrisranney/gopas)
 
 **goPAS** is a Go SDK for the CyberArk Privileged Access Security (PAS) REST API.
 
-Inspired by the popular [psPAS](https://github.com/pspete/psPAS) PowerShell module (see `inspiration/` folder), goPAS brings the same comprehensive CyberArk functionality to Go applications with idiomatic APIs, strong typing, and full context support.
+Inspired by the popular [psPAS](https://github.com/pspete/psPAS) PowerShell module, goPAS brings the same comprehensive CyberArk functionality to Go applications with idiomatic APIs, strong typing, and full context support.
 
 ## Installation
 
@@ -299,29 +300,22 @@ go tool cover -html=coverage.out
 
 The SDK includes comprehensive tests for all major packages:
 
-| Package | Coverage |
-|---------|----------|
-| `internal/client` | Core HTTP client and error handling |
-| `internal/helpers` | Utility functions and version parsing |
-| `internal/session` | Session management |
-| `pkg/accounts` | Account operations |
-| `pkg/applications` | Application management |
-| `pkg/authentication` | Authentication flows |
-| `pkg/connections` | PSM connections |
-| `pkg/platforms` | Platform operations |
-| `pkg/requests` | Access requests |
-| `pkg/safemembers` | Safe member management |
-| `pkg/safes` | Safe operations |
-| `pkg/systemhealth` | Health checks |
-| `pkg/users` | User management |
-
-## Inspiration
-
-The `inspiration/` folder contains the original [psPAS](https://github.com/pspete/psPAS) PowerShell module that inspired this Go SDK. It serves as a reference implementation and includes:
-
-- Complete PowerShell module source code
-- Comprehensive test suite (205 test files)
-- Full documentation
+| Package | Coverage | Description |
+|---------|----------|-------------|
+| `internal/session` | 100.0% | Session management |
+| `internal/helpers` | 98.5% | Utility functions and version parsing |
+| `internal/client` | 97.3% | Core HTTP client and error handling |
+| `pkg/safes` | 80.0% | Safe operations |
+| `pkg/systemhealth` | 79.3% | Health checks |
+| `pkg/connections` | 79.2% | PSM connections |
+| `pkg/applications` | 78.4% | Application management |
+| `pkg/safemembers` | 76.0% | Safe member management |
+| `pkg/platforms` | 75.9% | Platform operations |
+| `pkg/requests` | 71.4% | Access requests |
+| `pkg/accounts` | 64.0% | Account operations |
+| `pkg/authentication` | 60.4% | Authentication flows |
+| `pkg/users` | 39.3% | User management |
+| **Overall** | **46.5%** | All packages combined |
 
 ## Contributing
 
@@ -337,7 +331,7 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](inspiration/LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
