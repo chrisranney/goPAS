@@ -250,3 +250,160 @@ func ListDiscoveredAccounts(ctx context.Context, sess *session.Session, opts Lis
 
 	return &result, nil
 }
+
+// GetDiscoveredAccount retrieves a specific discovered account by ID.
+func GetDiscoveredAccount(ctx context.Context, sess *session.Session, accountID string) (*DiscoveredAccount, error) {
+	if sess == nil || !sess.IsValid() {
+		return nil, fmt.Errorf("valid session is required")
+	}
+
+	if accountID == "" {
+		return nil, fmt.Errorf("accountID is required")
+	}
+
+	resp, err := sess.Client.Get(ctx, fmt.Sprintf("/DiscoveredAccounts/%s", url.PathEscape(accountID)), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get discovered account: %w", err)
+	}
+
+	var account DiscoveredAccount
+	if err := json.Unmarshal(resp.Body, &account); err != nil {
+		return nil, fmt.Errorf("failed to parse discovered account response: %w", err)
+	}
+
+	return &account, nil
+}
+
+// AddDiscoveredAccountOptions holds options for adding a discovered account.
+type AddDiscoveredAccountOptions struct {
+	UserName                   string                 `json:"userName"`
+	Address                    string                 `json:"address"`
+	DiscoveryDateTime          int64                  `json:"discoveryDate,omitempty"`
+	AccountEnabled             *bool                  `json:"accountEnabled,omitempty"`
+	OsGroups                   string                 `json:"osGroups,omitempty"`
+	PlatformType               string                 `json:"platformType,omitempty"`
+	Domain                     string                 `json:"domain,omitempty"`
+	LastLogonDateTime          int64                  `json:"lastLogonDateTime,omitempty"`
+	LastPasswordSetDateTime    int64                  `json:"lastPasswordSetDateTime,omitempty"`
+	PasswordNeverExpires       *bool                  `json:"passwordNeverExpires,omitempty"`
+	OSVersion                  string                 `json:"osVersion,omitempty"`
+	Privileged                 *bool                  `json:"privileged,omitempty"`
+	UserDisplayName            string                 `json:"userDisplayName,omitempty"`
+	Description                string                 `json:"description,omitempty"`
+	PasswordExpirationDateTime int64                  `json:"passwordExpirationDateTime,omitempty"`
+	OU                         string                 `json:"organizationalUnit,omitempty"`
+	Dependencies               []DiscoveredDependency `json:"Dependencies,omitempty"`
+}
+
+// AddDiscoveredAccount adds an account to the discovered accounts list.
+// This is equivalent to Add-PASDiscoveredAccount in psPAS.
+func AddDiscoveredAccount(ctx context.Context, sess *session.Session, opts AddDiscoveredAccountOptions) (*DiscoveredAccount, error) {
+	if sess == nil || !sess.IsValid() {
+		return nil, fmt.Errorf("valid session is required")
+	}
+
+	if opts.UserName == "" {
+		return nil, fmt.Errorf("userName is required")
+	}
+
+	if opts.Address == "" {
+		return nil, fmt.Errorf("address is required")
+	}
+
+	resp, err := sess.Client.Post(ctx, "/DiscoveredAccounts", opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add discovered account: %w", err)
+	}
+
+	var account DiscoveredAccount
+	if err := json.Unmarshal(resp.Body, &account); err != nil {
+		return nil, fmt.Errorf("failed to parse discovered account response: %w", err)
+	}
+
+	return &account, nil
+}
+
+// DeleteDiscoveredAccount removes a discovered account from the list.
+func DeleteDiscoveredAccount(ctx context.Context, sess *session.Session, accountID string) error {
+	if sess == nil || !sess.IsValid() {
+		return fmt.Errorf("valid session is required")
+	}
+
+	if accountID == "" {
+		return fmt.Errorf("accountID is required")
+	}
+
+	_, err := sess.Client.Delete(ctx, fmt.Sprintf("/DiscoveredAccounts/%s", url.PathEscape(accountID)))
+	if err != nil {
+		return fmt.Errorf("failed to delete discovered account: %w", err)
+	}
+
+	return nil
+}
+
+// ClearDiscoveredAccountsOptions holds options for clearing discovered accounts.
+type ClearDiscoveredAccountsOptions struct {
+	DiscoverySource string `json:"discoverySource,omitempty"` // Discovery source to filter by
+}
+
+// ClearDiscoveredAccounts clears all discovered accounts from the list.
+// This is equivalent to Clear-PASDiscoveredAccountList in psPAS.
+func ClearDiscoveredAccounts(ctx context.Context, sess *session.Session, opts ClearDiscoveredAccountsOptions) error {
+	if sess == nil || !sess.IsValid() {
+		return fmt.Errorf("valid session is required")
+	}
+
+	_, err := sess.Client.Delete(ctx, "/DiscoveredAccounts")
+	if err != nil {
+		return fmt.Errorf("failed to clear discovered accounts: %w", err)
+	}
+
+	return nil
+}
+
+// PublishDiscoveredAccountOptions holds options for publishing (onboarding) a discovered account.
+type PublishDiscoveredAccountOptions struct {
+	AccountID        string `json:"-"` // Used in URL
+	SafeName         string `json:"safeName"`
+	PlatformID       string `json:"platformId,omitempty"`
+	Secret           string `json:"secret,omitempty"`
+	SecretType       string `json:"secretType,omitempty"`
+	AutomaticManagement *bool  `json:"automaticManagement,omitempty"`
+	ManualManagementReason string `json:"manualManagementReason,omitempty"`
+}
+
+// PublishedAccount represents the result of publishing a discovered account.
+type PublishedAccount struct {
+	ID         string `json:"id"`
+	Name       string `json:"name,omitempty"`
+	SafeName   string `json:"safeName"`
+	PlatformID string `json:"platformId"`
+}
+
+// PublishDiscoveredAccount onboards a discovered account to CyberArk vault.
+// This is equivalent to Publish-PASDiscoveredAccount in psPAS.
+func PublishDiscoveredAccount(ctx context.Context, sess *session.Session, opts PublishDiscoveredAccountOptions) (*PublishedAccount, error) {
+	if sess == nil || !sess.IsValid() {
+		return nil, fmt.Errorf("valid session is required")
+	}
+
+	if opts.AccountID == "" {
+		return nil, fmt.Errorf("accountID is required")
+	}
+
+	if opts.SafeName == "" {
+		return nil, fmt.Errorf("safeName is required")
+	}
+
+	resp, err := sess.Client.Post(ctx, fmt.Sprintf("/DiscoveredAccounts/%s/Onboard", url.PathEscape(opts.AccountID)), opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to publish discovered account: %w", err)
+	}
+
+	var result PublishedAccount
+	if err := json.Unmarshal(resp.Body, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse published account response: %w", err)
+	}
+
+	return &result, nil
+}
