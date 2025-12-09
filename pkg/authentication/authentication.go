@@ -251,3 +251,106 @@ func trimQuotes(s string) string {
 	}
 	return s
 }
+
+// LoggedOnUser represents the currently logged on user information.
+type LoggedOnUser struct {
+	ID                      int      `json:"id"`
+	Username                string   `json:"username"`
+	Source                  string   `json:"source"`
+	UserType                string   `json:"userType"`
+	ComponentUser           bool     `json:"componentUser"`
+	VaultAuthorization      []string `json:"vaultAuthorization"`
+	Location                string   `json:"location"`
+	AgentUser               bool     `json:"agentUser"`
+	Disabled                bool     `json:"disabled"`
+	Suspended               bool     `json:"suspended"`
+	LastSuccessfulLoginDate int64    `json:"lastSuccessfulLoginDate"`
+}
+
+// GetLoggedOnUser retrieves information about the currently logged on user.
+// This is equivalent to Get-PASLoggedOnUser in psPAS.
+func GetLoggedOnUser(ctx context.Context, sess *session.Session) (*LoggedOnUser, error) {
+	if sess == nil || !sess.IsValid() {
+		return nil, fmt.Errorf("valid session is required")
+	}
+
+	resp, err := sess.Client.Get(ctx, "/WebServices/PIMServices.svc/User", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get logged on user: %w", err)
+	}
+
+	var user LoggedOnUser
+	if err := json.Unmarshal(resp.Body, &user); err != nil {
+		return nil, fmt.Errorf("failed to parse logged on user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// UserLoginInfo represents login information for the current user.
+type UserLoginInfo struct {
+	Username              string   `json:"Username"`
+	UserType              string   `json:"UserType"`
+	InVaultGUID           string   `json:"InVaultGUID"`
+	ComponentUser         bool     `json:"ComponentUser"`
+	LoginTime             int64    `json:"LoginTime"`
+	LastFailedLogin       int64    `json:"LastFailedLogin,omitempty"`
+	VaultAuthorization    []string `json:"VaultAuthorization"`
+	Location              string   `json:"Location"`
+	AuthenticationMethods []string `json:"AuthenticationMethods,omitempty"`
+}
+
+// GetUserLoginInfo retrieves login information about the current session user.
+// This is equivalent to Get-PASUserLoginInfo in psPAS.
+func GetUserLoginInfo(ctx context.Context, sess *session.Session) (*UserLoginInfo, error) {
+	if sess == nil || !sess.IsValid() {
+		return nil, fmt.Errorf("valid session is required")
+	}
+
+	resp, err := sess.Client.Get(ctx, "/LoginsInfo", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user login info: %w", err)
+	}
+
+	var info UserLoginInfo
+	if err := json.Unmarshal(resp.Body, &info); err != nil {
+		return nil, fmt.Errorf("failed to parse user login info: %w", err)
+	}
+
+	return &info, nil
+}
+
+// GetSession returns the current session information.
+// This is equivalent to Get-PASSession in psPAS.
+func GetSession(sess *session.Session) map[string]interface{} {
+	if sess == nil {
+		return nil
+	}
+
+	return map[string]interface{}{
+		"BaseURI":         sess.BaseURI,
+		"User":            sess.User,
+		"AuthMethod":      sess.AuthMethod,
+		"IsAuthenticated": sess.IsAuthenticated,
+		"ExternalVersion": sess.ExternalVersion,
+		"StartTime":       sess.StartTime,
+		"ElapsedTime":     sess.GetElapsedTime().String(),
+		"PrivilegeCloud":  sess.PrivilegeCloud,
+	}
+}
+
+// UseSession sets the active session for subsequent operations.
+// This is equivalent to Use-PASSession in psPAS.
+// Note: In this Go implementation, sessions are passed explicitly to functions,
+// so this function simply validates and returns the session.
+func UseSession(sess *session.Session) (*session.Session, error) {
+	if sess == nil {
+		return nil, fmt.Errorf("session is required")
+	}
+
+	if !sess.IsValid() {
+		return nil, fmt.Errorf("session is not valid or authenticated")
+	}
+
+	return sess, nil
+}
