@@ -7,12 +7,12 @@ import (
 
 func TestParseVersion(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       string
-		wantMajor   int
-		wantMinor   int
-		wantPatch   int
-		wantErr     bool
+		name      string
+		input     string
+		wantMajor int
+		wantMinor int
+		wantPatch int
+		wantErr   bool
 	}{
 		{
 			name:      "full version",

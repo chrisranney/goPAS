@@ -65,7 +65,7 @@ func TestAPIError_StatusChecks(t *testing.T) {
 			isNotFound: true,
 		},
 		{
-			name:     "401 Unauthorized",
+			name:       "401 Unauthorized",
 			statusCode: 401,
 			isUnauth:   true,
 		},

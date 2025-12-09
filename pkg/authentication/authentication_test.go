@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/chrisranney/gopas/internal/client"
 	"github.com/chrisranney/gopas/internal/session"
 )
 
@@ -487,16 +486,6 @@ func TestComponentHealth_Struct(t *testing.T) {
 	if !health.IsLoggedOn {
 		t.Error("IsLoggedOn should be true")
 	}
-}
-
-// Helper to create test client
-func createTestClient(t *testing.T, serverURL string) *client.Client {
-	c, err := client.NewClient(client.Config{BaseURL: serverURL})
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
-	c.SetAuthToken("test-token")
-	return c
 }
 
 // Helper to check if string contains substring

@@ -27,8 +27,8 @@ type SAMLSessionOptions struct {
 
 // SAMLLoginRequest represents the SAML login request body.
 type SAMLLoginRequest struct {
-	SAMLResponse   string `json:"SAMLResponse,omitempty"`
-	ConcurrentSession bool `json:"concurrentSession,omitempty"`
+	SAMLResponse      string `json:"SAMLResponse,omitempty"`
+	ConcurrentSession bool   `json:"concurrentSession,omitempty"`
 }
 
 // SAMLAuthResponse represents the SAML auth response.

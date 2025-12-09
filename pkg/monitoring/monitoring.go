@@ -15,37 +15,37 @@ import (
 
 // PSMSession represents a PSM session.
 type PSMSession struct {
-	SessionID             string            `json:"SessionID"`
-	SessionGuid           string            `json:"SessionGuid,omitempty"`
-	SafeName              string            `json:"SafeName,omitempty"`
-	AccountID             string            `json:"AccountID,omitempty"`
-	AccountName           string            `json:"AccountName,omitempty"`
-	AccountPlatformID     string            `json:"AccountPlatformID,omitempty"`
-	User                  string            `json:"User"`
-	RemoteMachine         string            `json:"RemoteMachine,omitempty"`
-	Protocol              string            `json:"Protocol,omitempty"`
-	Client                string            `json:"Client,omitempty"`
-	ClientIP              string            `json:"ClientIP,omitempty"`
-	ConnectionComponent   string            `json:"ConnectionComponent,omitempty"`
-	Start                 int64             `json:"Start"`
-	End                   int64             `json:"End,omitempty"`
-	Duration              int64             `json:"Duration,omitempty"`
-	PSMServerID           string            `json:"PSMServerID,omitempty"`
-	FromIP                string            `json:"FromIP,omitempty"`
-	RiskScore             float64           `json:"RiskScore,omitempty"`
-	IsLive                bool              `json:"IsLive"`
-	CanTerminate          bool              `json:"CanTerminate,omitempty"`
-	CanMonitor            bool              `json:"CanMonitor,omitempty"`
-	CanPlayback           bool              `json:"CanPlayback,omitempty"`
-	RecordingFiles        []RecordingFile   `json:"RecordingFiles,omitempty"`
-	Properties            map[string]string `json:"Properties,omitempty"`
+	SessionID           string            `json:"SessionID"`
+	SessionGuid         string            `json:"SessionGuid,omitempty"`
+	SafeName            string            `json:"SafeName,omitempty"`
+	AccountID           string            `json:"AccountID,omitempty"`
+	AccountName         string            `json:"AccountName,omitempty"`
+	AccountPlatformID   string            `json:"AccountPlatformID,omitempty"`
+	User                string            `json:"User"`
+	RemoteMachine       string            `json:"RemoteMachine,omitempty"`
+	Protocol            string            `json:"Protocol,omitempty"`
+	Client              string            `json:"Client,omitempty"`
+	ClientIP            string            `json:"ClientIP,omitempty"`
+	ConnectionComponent string            `json:"ConnectionComponent,omitempty"`
+	Start               int64             `json:"Start"`
+	End                 int64             `json:"End,omitempty"`
+	Duration            int64             `json:"Duration,omitempty"`
+	PSMServerID         string            `json:"PSMServerID,omitempty"`
+	FromIP              string            `json:"FromIP,omitempty"`
+	RiskScore           float64           `json:"RiskScore,omitempty"`
+	IsLive              bool              `json:"IsLive"`
+	CanTerminate        bool              `json:"CanTerminate,omitempty"`
+	CanMonitor          bool              `json:"CanMonitor,omitempty"`
+	CanPlayback         bool              `json:"CanPlayback,omitempty"`
+	RecordingFiles      []RecordingFile   `json:"RecordingFiles,omitempty"`
+	Properties          map[string]string `json:"Properties,omitempty"`
 }
 
 // RecordingFile represents a PSM recording file.
 type RecordingFile struct {
-	FileName    string `json:"FileName"`
+	FileName      string `json:"FileName"`
 	RecordingType string `json:"RecordingType,omitempty"`
-	Format      string `json:"Format,omitempty"`
+	Format        string `json:"Format,omitempty"`
 }
 
 // SessionsResponse represents the response from listing sessions.

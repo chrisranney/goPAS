@@ -14,11 +14,11 @@ import (
 
 // ConnectionRequest represents a PSM connection request.
 type ConnectionRequest struct {
-	Reason            string            `json:"reason,omitempty"`
-	TicketingSystemName string          `json:"ticketingSystemName,omitempty"`
-	TicketID          string            `json:"ticketId,omitempty"`
-	ConnectionComponent string          `json:"ConnectionComponent,omitempty"`
-	ConnectionParams  map[string]string `json:"ConnectionParams,omitempty"`
+	Reason              string            `json:"reason,omitempty"`
+	TicketingSystemName string            `json:"ticketingSystemName,omitempty"`
+	TicketID            string            `json:"ticketId,omitempty"`
+	ConnectionComponent string            `json:"ConnectionComponent,omitempty"`
+	ConnectionParams    map[string]string `json:"ConnectionParams,omitempty"`
 }
 
 // ConnectionResponse represents a PSM connection response.
@@ -53,11 +53,11 @@ func Connect(ctx context.Context, sess *session.Session, accountID string, req C
 
 // AdHocConnectRequest represents an ad-hoc PSM connection request.
 type AdHocConnectRequest struct {
-	UserName          string            `json:"userName"`
-	Secret            string            `json:"secret"`
-	Address           string            `json:"address"`
-	PlatformID        string            `json:"platformId"`
-	ExtraFields       map[string]string `json:"extraFields,omitempty"`
+	UserName                string            `json:"userName"`
+	Secret                  string            `json:"secret"`
+	Address                 string            `json:"address"`
+	PlatformID              string            `json:"platformId"`
+	ExtraFields             map[string]string `json:"extraFields,omitempty"`
 	PSMConnectPrerequisites *PSMPrerequisites `json:"PSMConnectPrerequisites,omitempty"`
 }
 
@@ -137,10 +137,10 @@ func GetConnectionComponents(ctx context.Context, sess *session.Session, platfor
 
 // PSMServer represents a PSM server.
 type PSMServer struct {
-	ID          string `json:"ID"`
-	Name        string `json:"Name"`
-	Address     string `json:"Address,omitempty"`
-	PSMVersion  string `json:"PSMVersion,omitempty"`
+	ID         string `json:"ID"`
+	Name       string `json:"Name"`
+	Address    string `json:"Address,omitempty"`
+	PSMVersion string `json:"PSMVersion,omitempty"`
 }
 
 // GetPSMServers retrieves available PSM servers.

@@ -14,14 +14,14 @@ import (
 
 // Directory represents an LDAP directory configuration.
 type Directory struct {
-	DirectoryID         string              `json:"DirectoryID,omitempty"`
-	DomainName          string              `json:"DomainName"`
-	DomainBaseContext   string              `json:"DomainBaseContext,omitempty"`
-	BindUsername        string              `json:"BindUsername,omitempty"`
-	BindPassword        string              `json:"BindPassword,omitempty"`
-	DCList              []DomainController  `json:"DCList,omitempty"`
-	SSLConnect          bool                `json:"SSLConnect,omitempty"`
-	VaultUseDomainName  bool                `json:"VaultUseDomainName,omitempty"`
+	DirectoryID        string             `json:"DirectoryID,omitempty"`
+	DomainName         string             `json:"DomainName"`
+	DomainBaseContext  string             `json:"DomainBaseContext,omitempty"`
+	BindUsername       string             `json:"BindUsername,omitempty"`
+	BindPassword       string             `json:"BindPassword,omitempty"`
+	DCList             []DomainController `json:"DCList,omitempty"`
+	SSLConnect         bool               `json:"SSLConnect,omitempty"`
+	VaultUseDomainName bool               `json:"VaultUseDomainName,omitempty"`
 }
 
 // DomainController represents a domain controller.
@@ -82,13 +82,13 @@ func Get(ctx context.Context, sess *session.Session, directoryID string) (*Direc
 
 // CreateOptions holds options for creating a directory.
 type CreateOptions struct {
-	DomainName          string             `json:"DomainName"`
-	DomainBaseContext   string             `json:"DomainBaseContext,omitempty"`
-	BindUsername        string             `json:"BindUsername,omitempty"`
-	BindPassword        string             `json:"BindPassword,omitempty"`
-	DCList              []DomainController `json:"DCList,omitempty"`
-	SSLConnect          bool               `json:"SSLConnect,omitempty"`
-	VaultUseDomainName  bool               `json:"VaultUseDomainName,omitempty"`
+	DomainName         string             `json:"DomainName"`
+	DomainBaseContext  string             `json:"DomainBaseContext,omitempty"`
+	BindUsername       string             `json:"BindUsername,omitempty"`
+	BindPassword       string             `json:"BindPassword,omitempty"`
+	DCList             []DomainController `json:"DCList,omitempty"`
+	SSLConnect         bool               `json:"SSLConnect,omitempty"`
+	VaultUseDomainName bool               `json:"VaultUseDomainName,omitempty"`
 }
 
 // Create creates a new LDAP directory.
@@ -136,15 +136,15 @@ func Delete(ctx context.Context, sess *session.Session, directoryID string) erro
 
 // DirectoryMapping represents an LDAP directory mapping.
 type DirectoryMapping struct {
-	MappingID          string   `json:"MappingID,omitempty"`
-	DirectoryMappingName string `json:"DirectoryMappingName"`
-	LDAPBranch         string   `json:"LDAPBranch"`
-	DomainGroups       []string `json:"DomainGroups,omitempty"`
-	VaultGroups        []string `json:"VaultGroups,omitempty"`
-	Location           string   `json:"Location,omitempty"`
-	LDAPQuery          string   `json:"LDAPQuery,omitempty"`
+	MappingID             string   `json:"MappingID,omitempty"`
+	DirectoryMappingName  string   `json:"DirectoryMappingName"`
+	LDAPBranch            string   `json:"LDAPBranch"`
+	DomainGroups          []string `json:"DomainGroups,omitempty"`
+	VaultGroups           []string `json:"VaultGroups,omitempty"`
+	Location              string   `json:"Location,omitempty"`
+	LDAPQuery             string   `json:"LDAPQuery,omitempty"`
 	MappingAuthorizations []string `json:"MappingAuthorizations,omitempty"`
-	UserActivityLogPeriod int   `json:"UserActivityLogPeriod,omitempty"`
+	UserActivityLogPeriod int      `json:"UserActivityLogPeriod,omitempty"`
 }
 
 // ListMappings retrieves directory mappings.
@@ -175,14 +175,14 @@ func ListMappings(ctx context.Context, sess *session.Session, directoryID string
 
 // CreateMappingOptions holds options for creating a directory mapping.
 type CreateMappingOptions struct {
-	DirectoryMappingName string   `json:"DirectoryMappingName"`
-	LDAPBranch           string   `json:"LDAPBranch"`
-	DomainGroups         []string `json:"DomainGroups,omitempty"`
-	VaultGroups          []string `json:"VaultGroups,omitempty"`
-	Location             string   `json:"Location,omitempty"`
-	LDAPQuery            string   `json:"LDAPQuery,omitempty"`
+	DirectoryMappingName  string   `json:"DirectoryMappingName"`
+	LDAPBranch            string   `json:"LDAPBranch"`
+	DomainGroups          []string `json:"DomainGroups,omitempty"`
+	VaultGroups           []string `json:"VaultGroups,omitempty"`
+	Location              string   `json:"Location,omitempty"`
+	LDAPQuery             string   `json:"LDAPQuery,omitempty"`
 	MappingAuthorizations []string `json:"MappingAuthorizations,omitempty"`
-	UserActivityLogPeriod int     `json:"UserActivityLogPeriod,omitempty"`
+	UserActivityLogPeriod int      `json:"UserActivityLogPeriod,omitempty"`
 }
 
 // CreateMapping creates a new directory mapping.

@@ -16,19 +16,19 @@ import (
 
 // Account represents a CyberArk privileged account.
 type Account struct {
-	ID                      string                 `json:"id"`
-	Name                    string                 `json:"name"`
-	Address                 string                 `json:"address"`
-	UserName                string                 `json:"userName"`
-	PlatformID              string                 `json:"platformId"`
-	SafeName                string                 `json:"safeName"`
-	SecretType              string                 `json:"secretType"`
-	Secret                  string                 `json:"secret,omitempty"`
+	ID                        string                 `json:"id"`
+	Name                      string                 `json:"name"`
+	Address                   string                 `json:"address"`
+	UserName                  string                 `json:"userName"`
+	PlatformID                string                 `json:"platformId"`
+	SafeName                  string                 `json:"safeName"`
+	SecretType                string                 `json:"secretType"`
+	Secret                    string                 `json:"secret,omitempty"`
 	PlatformAccountProperties map[string]interface{} `json:"platformAccountProperties,omitempty"`
-	SecretManagement        *SecretManagement      `json:"secretManagement,omitempty"`
-	RemoteMachinesAccess    *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
-	CreatedTime             int64                  `json:"createdTime"`
-	CategoryModificationTime int64                 `json:"categoryModificationTime,omitempty"`
+	SecretManagement          *SecretManagement      `json:"secretManagement,omitempty"`
+	RemoteMachinesAccess      *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
+	CreatedTime               int64                  `json:"createdTime"`
+	CategoryModificationTime  int64                  `json:"categoryModificationTime,omitempty"`
 }
 
 // SecretManagement holds secret management settings for an account.
@@ -56,13 +56,13 @@ type AccountsResponse struct {
 
 // ListOptions holds options for listing accounts.
 type ListOptions struct {
-	Search       string
-	SearchType   string
-	Sort         string
-	Offset       int
-	Limit        int
-	Filter       string
-	SafeName     string
+	Search     string
+	SearchType string
+	Sort       string
+	Offset     int
+	Limit      int
+	Filter     string
+	SafeName   string
 }
 
 // List retrieves accounts from CyberArk.
@@ -134,16 +134,16 @@ func Get(ctx context.Context, sess *session.Session, accountID string) (*Account
 
 // CreateOptions holds options for creating an account.
 type CreateOptions struct {
-	Name                    string                 `json:"name,omitempty"`
-	Address                 string                 `json:"address"`
-	UserName                string                 `json:"userName"`
-	PlatformID              string                 `json:"platformId"`
-	SafeName                string                 `json:"safeName"`
-	SecretType              string                 `json:"secretType,omitempty"`
-	Secret                  string                 `json:"secret,omitempty"`
+	Name                      string                 `json:"name,omitempty"`
+	Address                   string                 `json:"address"`
+	UserName                  string                 `json:"userName"`
+	PlatformID                string                 `json:"platformId"`
+	SafeName                  string                 `json:"safeName"`
+	SecretType                string                 `json:"secretType,omitempty"`
+	Secret                    string                 `json:"secret,omitempty"`
 	PlatformAccountProperties map[string]interface{} `json:"platformAccountProperties,omitempty"`
-	SecretManagement        *SecretManagement      `json:"secretManagement,omitempty"`
-	RemoteMachinesAccess    *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
+	SecretManagement          *SecretManagement      `json:"secretManagement,omitempty"`
+	RemoteMachinesAccess      *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
 }
 
 // Create creates a new account in CyberArk.
@@ -181,13 +181,13 @@ func Create(ctx context.Context, sess *session.Session, opts CreateOptions) (*Ac
 
 // UpdateOptions holds options for updating an account.
 type UpdateOptions struct {
-	Name                    string                 `json:"name,omitempty"`
-	Address                 string                 `json:"address,omitempty"`
-	UserName                string                 `json:"userName,omitempty"`
-	PlatformID              string                 `json:"platformId,omitempty"`
+	Name                      string                 `json:"name,omitempty"`
+	Address                   string                 `json:"address,omitempty"`
+	UserName                  string                 `json:"userName,omitempty"`
+	PlatformID                string                 `json:"platformId,omitempty"`
 	PlatformAccountProperties map[string]interface{} `json:"platformAccountProperties,omitempty"`
-	SecretManagement        *SecretManagement      `json:"secretManagement,omitempty"`
-	RemoteMachinesAccess    *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
+	SecretManagement          *SecretManagement      `json:"secretManagement,omitempty"`
+	RemoteMachinesAccess      *RemoteMachinesAccess  `json:"remoteMachinesAccess,omitempty"`
 }
 
 // PatchOperation represents a JSON Patch operation.
@@ -362,13 +362,13 @@ func SetNextPassword(ctx context.Context, sess *session.Session, accountID strin
 
 // AccountActivity represents account activity information.
 type AccountActivity struct {
-	Time       int64  `json:"Time"`
-	Action     string `json:"Action"`
-	ClientID   string `json:"ClientID"`
-	ActionID   string `json:"ActionID"`
-	Alert      bool   `json:"Alert"`
-	Reason     string `json:"Reason"`
-	UserName   string `json:"UserName"`
+	Time     int64  `json:"Time"`
+	Action   string `json:"Action"`
+	ClientID string `json:"ClientID"`
+	ActionID string `json:"ActionID"`
+	Alert    bool   `json:"Alert"`
+	Reason   string `json:"Reason"`
+	UserName string `json:"UserName"`
 }
 
 // GetActivities retrieves the activity log for an account.

@@ -14,17 +14,17 @@ import (
 
 // Application represents a CyberArk application.
 type Application struct {
-	AppID                    string   `json:"AppID"`
-	Description              string   `json:"Description,omitempty"`
-	Location                 string   `json:"Location,omitempty"`
-	AccessPermittedFrom      int      `json:"AccessPermittedFrom,omitempty"`
-	AccessPermittedTo        int      `json:"AccessPermittedTo,omitempty"`
-	ExpirationDate           string   `json:"ExpirationDate,omitempty"`
-	Disabled                 bool     `json:"Disabled"`
-	BusinessOwnerFName       string   `json:"BusinessOwnerFName,omitempty"`
-	BusinessOwnerLName       string   `json:"BusinessOwnerLName,omitempty"`
-	BusinessOwnerEmail       string   `json:"BusinessOwnerEmail,omitempty"`
-	BusinessOwnerPhone       string   `json:"BusinessOwnerPhone,omitempty"`
+	AppID               string `json:"AppID"`
+	Description         string `json:"Description,omitempty"`
+	Location            string `json:"Location,omitempty"`
+	AccessPermittedFrom int    `json:"AccessPermittedFrom,omitempty"`
+	AccessPermittedTo   int    `json:"AccessPermittedTo,omitempty"`
+	ExpirationDate      string `json:"ExpirationDate,omitempty"`
+	Disabled            bool   `json:"Disabled"`
+	BusinessOwnerFName  string `json:"BusinessOwnerFName,omitempty"`
+	BusinessOwnerLName  string `json:"BusinessOwnerLName,omitempty"`
+	BusinessOwnerEmail  string `json:"BusinessOwnerEmail,omitempty"`
+	BusinessOwnerPhone  string `json:"BusinessOwnerPhone,omitempty"`
 }
 
 // ApplicationsResponse represents the response from listing applications.
@@ -34,7 +34,7 @@ type ApplicationsResponse struct {
 
 // ListOptions holds options for listing applications.
 type ListOptions struct {
-	Location string
+	Location     string
 	SubLocations bool
 }
 
@@ -93,17 +93,17 @@ func Get(ctx context.Context, sess *session.Session, appID string) (*Application
 
 // CreateOptions holds options for creating an application.
 type CreateOptions struct {
-	AppID                    string `json:"AppID"`
-	Description              string `json:"Description,omitempty"`
-	Location                 string `json:"Location,omitempty"`
-	AccessPermittedFrom      int    `json:"AccessPermittedFrom,omitempty"`
-	AccessPermittedTo        int    `json:"AccessPermittedTo,omitempty"`
-	ExpirationDate           string `json:"ExpirationDate,omitempty"`
-	Disabled                 bool   `json:"Disabled,omitempty"`
-	BusinessOwnerFName       string `json:"BusinessOwnerFName,omitempty"`
-	BusinessOwnerLName       string `json:"BusinessOwnerLName,omitempty"`
-	BusinessOwnerEmail       string `json:"BusinessOwnerEmail,omitempty"`
-	BusinessOwnerPhone       string `json:"BusinessOwnerPhone,omitempty"`
+	AppID               string `json:"AppID"`
+	Description         string `json:"Description,omitempty"`
+	Location            string `json:"Location,omitempty"`
+	AccessPermittedFrom int    `json:"AccessPermittedFrom,omitempty"`
+	AccessPermittedTo   int    `json:"AccessPermittedTo,omitempty"`
+	ExpirationDate      string `json:"ExpirationDate,omitempty"`
+	Disabled            bool   `json:"Disabled,omitempty"`
+	BusinessOwnerFName  string `json:"BusinessOwnerFName,omitempty"`
+	BusinessOwnerLName  string `json:"BusinessOwnerLName,omitempty"`
+	BusinessOwnerEmail  string `json:"BusinessOwnerEmail,omitempty"`
+	BusinessOwnerPhone  string `json:"BusinessOwnerPhone,omitempty"`
 }
 
 // Create creates a new application in CyberArk.
@@ -150,12 +150,12 @@ func Delete(ctx context.Context, sess *session.Session, appID string) error {
 
 // AuthMethod represents an application authentication method.
 type AuthMethod struct {
-	AppID          string `json:"AppID"`
-	AuthType       string `json:"AuthType"`
-	AuthValue      string `json:"AuthValue"`
-	Comment        string `json:"Comment,omitempty"`
-	IsFolder       bool   `json:"IsFolder,omitempty"`
-	AllowInternalScripts bool `json:"AllowInternalScripts,omitempty"`
+	AppID                string `json:"AppID"`
+	AuthType             string `json:"AuthType"`
+	AuthValue            string `json:"AuthValue"`
+	Comment              string `json:"Comment,omitempty"`
+	IsFolder             bool   `json:"IsFolder,omitempty"`
+	AllowInternalScripts bool   `json:"AllowInternalScripts,omitempty"`
 }
 
 // ListAuthMethods retrieves authentication methods for an application.
@@ -186,11 +186,11 @@ func ListAuthMethods(ctx context.Context, sess *session.Session, appID string) (
 
 // AddAuthMethodOptions holds options for adding an authentication method.
 type AddAuthMethodOptions struct {
-	AuthType       string `json:"AuthType"`
-	AuthValue      string `json:"AuthValue"`
-	Comment        string `json:"Comment,omitempty"`
-	IsFolder       bool   `json:"IsFolder,omitempty"`
-	AllowInternalScripts bool `json:"AllowInternalScripts,omitempty"`
+	AuthType             string `json:"AuthType"`
+	AuthValue            string `json:"AuthValue"`
+	Comment              string `json:"Comment,omitempty"`
+	IsFolder             bool   `json:"IsFolder,omitempty"`
+	AllowInternalScripts bool   `json:"AllowInternalScripts,omitempty"`
 }
 
 // AddAuthMethod adds an authentication method to an application.

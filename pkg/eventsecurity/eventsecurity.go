@@ -15,17 +15,17 @@ import (
 
 // PTAEvent represents a PTA security event.
 type PTAEvent struct {
-	ID                 string                 `json:"id"`
-	Type               string                 `json:"type"`
-	Score              float64                `json:"score"`
-	EventTime          int64                  `json:"eventTime"`
-	MachineAddress     string                 `json:"machineAddress,omitempty"`
-	UserID             string                 `json:"userId,omitempty"`
-	UserName           string                 `json:"userName,omitempty"`
-	CloudData          *CloudData             `json:"cloudData,omitempty"`
-	Status             string                 `json:"status,omitempty"`
-	Details            map[string]interface{} `json:"details,omitempty"`
-	AffectedAccounts   []AffectedAccount      `json:"affectedAccounts,omitempty"`
+	ID               string                 `json:"id"`
+	Type             string                 `json:"type"`
+	Score            float64                `json:"score"`
+	EventTime        int64                  `json:"eventTime"`
+	MachineAddress   string                 `json:"machineAddress,omitempty"`
+	UserID           string                 `json:"userId,omitempty"`
+	UserName         string                 `json:"userName,omitempty"`
+	CloudData        *CloudData             `json:"cloudData,omitempty"`
+	Status           string                 `json:"status,omitempty"`
+	Details          map[string]interface{} `json:"details,omitempty"`
+	AffectedAccounts []AffectedAccount      `json:"affectedAccounts,omitempty"`
 }
 
 // CloudData holds cloud-related event data.
@@ -52,12 +52,12 @@ type PTAEventsResponse struct {
 
 // ListEventsOptions holds options for listing PTA events.
 type ListEventsOptions struct {
-	FromDate     int64
-	ToDate       int64
-	Status       string
-	AccountID    string
-	Offset       int
-	Limit        int
+	FromDate  int64
+	ToDate    int64
+	Status    string
+	AccountID string
+	Offset    int
+	Limit     int
 }
 
 // ListEvents retrieves PTA security events.
@@ -207,10 +207,10 @@ func SetRule(ctx context.Context, sess *session.Session, ruleID string, opts Set
 
 // PTARemediation represents a PTA remediation action.
 type PTARemediation struct {
-	ID           string `json:"id"`
-	Type         string `json:"type"`
-	Name         string `json:"name"`
-	Description  string `json:"description,omitempty"`
+	ID          string `json:"id"`
+	Type        string `json:"type"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
 }
 
 // ListRemediations retrieves PTA remediation options.

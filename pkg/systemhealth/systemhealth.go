@@ -26,15 +26,15 @@ type ComponentSummary struct {
 
 // ComponentDetail represents detailed component health information.
 type ComponentDetail struct {
-	ComponentID            string            `json:"ComponentID"`
-	ComponentName          string            `json:"ComponentName"`
-	ComponentType          string            `json:"ComponentType"`
-	Description            string            `json:"Description,omitempty"`
-	ConnectedComponentID   string            `json:"ConnectedComponentID,omitempty"`
-	ConnectedComponentName string            `json:"ConnectedComponentName,omitempty"`
-	IsLoggedOn             bool              `json:"IsLoggedOn"`
-	LastLogonDate          int64             `json:"LastLogonDate,omitempty"`
-	ComponentVersion       string            `json:"ComponentVersion,omitempty"`
+	ComponentID            string                 `json:"ComponentID"`
+	ComponentName          string                 `json:"ComponentName"`
+	ComponentType          string                 `json:"ComponentType"`
+	Description            string                 `json:"Description,omitempty"`
+	ConnectedComponentID   string                 `json:"ConnectedComponentID,omitempty"`
+	ConnectedComponentName string                 `json:"ConnectedComponentName,omitempty"`
+	IsLoggedOn             bool                   `json:"IsLoggedOn"`
+	LastLogonDate          int64                  `json:"LastLogonDate,omitempty"`
+	ComponentVersion       string                 `json:"ComponentVersion,omitempty"`
 	ComponentSpecificData  map[string]interface{} `json:"ComponentSpecificData,omitempty"`
 }
 

@@ -14,13 +14,13 @@ import (
 
 // PolicyACL represents a policy ACL entry.
 type PolicyACL struct {
-	PolicyID           string `json:"PolicyId"`
-	UserName           string `json:"UserName"`
-	Command            string `json:"Command,omitempty"`
-	CommandGroup       bool   `json:"CommandGroup,omitempty"`
-	PermissionType     string `json:"PermissionType,omitempty"`
-	Restrictions       string `json:"Restrictions,omitempty"`
-	IsGroup            bool   `json:"IsGroup,omitempty"`
+	PolicyID       string `json:"PolicyId"`
+	UserName       string `json:"UserName"`
+	Command        string `json:"Command,omitempty"`
+	CommandGroup   bool   `json:"CommandGroup,omitempty"`
+	PermissionType string `json:"PermissionType,omitempty"`
+	Restrictions   string `json:"Restrictions,omitempty"`
+	IsGroup        bool   `json:"IsGroup,omitempty"`
 }
 
 // PolicyACLResponse represents the response from listing policy ACLs.
@@ -54,12 +54,12 @@ func List(ctx context.Context, sess *session.Session, policyID string) ([]Policy
 
 // AddOptions holds options for adding a policy ACL.
 type AddOptions struct {
-	Command            string `json:"Command"`
-	CommandGroup       bool   `json:"CommandGroup,omitempty"`
-	PermissionType     string `json:"PermissionType,omitempty"`
-	Restrictions       string `json:"Restrictions,omitempty"`
-	UserName           string `json:"UserName,omitempty"`
-	IsGroup            bool   `json:"IsGroup,omitempty"`
+	Command        string `json:"Command"`
+	CommandGroup   bool   `json:"CommandGroup,omitempty"`
+	PermissionType string `json:"PermissionType,omitempty"`
+	Restrictions   string `json:"Restrictions,omitempty"`
+	UserName       string `json:"UserName,omitempty"`
+	IsGroup        bool   `json:"IsGroup,omitempty"`
 }
 
 // Add adds a policy ACL.

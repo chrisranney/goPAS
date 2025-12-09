@@ -15,21 +15,21 @@ import (
 
 // Group represents a CyberArk group.
 type Group struct {
-	ID          int    `json:"id"`
-	GroupName   string `json:"groupName"`
-	Description string `json:"description,omitempty"`
-	Location    string `json:"location,omitempty"`
-	GroupType   string `json:"groupType,omitempty"`
-	Directory   string `json:"directory,omitempty"`
-	DN          string `json:"dn,omitempty"`
+	ID          int                 `json:"id"`
+	GroupName   string              `json:"groupName"`
+	Description string              `json:"description,omitempty"`
+	Location    string              `json:"location,omitempty"`
+	GroupType   string              `json:"groupType,omitempty"`
+	Directory   string              `json:"directory,omitempty"`
+	DN          string              `json:"dn,omitempty"`
 	Members     []GroupMemberDetail `json:"members,omitempty"`
 }
 
 // GroupMemberDetail holds detailed information about a group member.
 type GroupMemberDetail struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	GroupID  int    `json:"groupID"`
+	ID         int    `json:"id"`
+	Username   string `json:"username"`
+	GroupID    int    `json:"groupID"`
 	DomainName string `json:"domainName,omitempty"`
 }
 
@@ -42,11 +42,11 @@ type GroupsResponse struct {
 
 // ListGroupsOptions holds options for listing groups.
 type ListGroupsOptions struct {
-	Search     string
-	Sort       string
-	Offset     int
-	Limit      int
-	Filter     string
+	Search         string
+	Sort           string
+	Offset         int
+	Limit          int
+	Filter         string
 	IncludeMembers bool
 }
 
