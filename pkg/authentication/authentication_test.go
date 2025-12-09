@@ -184,6 +184,156 @@ func TestNewSession_AuthMethods(t *testing.T) {
 	}
 }
 
+func TestNewSession_AuthenticationFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"ErrorCode":"PASWS001E","ErrorMessage":"Authentication failed"}`))
+	}))
+	defer server.Close()
+
+	opts := SessionOptions{
+		BaseURL: server.URL,
+		Credentials: Credentials{
+			Username: "admin",
+			Password: "wrongpassword",
+		},
+		SkipVersionCheck: true,
+	}
+
+	_, err := NewSession(context.Background(), opts)
+	if err == nil {
+		t.Error("NewSession() expected error for authentication failure, got nil")
+	}
+}
+
+func TestNewSession_EmptyTokenResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"CyberArkLogonResult": ""}`))
+	}))
+	defer server.Close()
+
+	opts := SessionOptions{
+		BaseURL: server.URL,
+		Credentials: Credentials{
+			Username: "admin",
+			Password: "password",
+		},
+		SkipVersionCheck: true,
+	}
+
+	_, err := NewSession(context.Background(), opts)
+	if err == nil {
+		t.Error("NewSession() expected error for empty token, got nil")
+	}
+}
+
+func TestNewSession_WithVersionCheck(t *testing.T) {
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		if containsString(r.URL.Path, "/Auth/") {
+			w.Write([]byte(`{"CyberArkLogonResult": "test-token"}`))
+		} else if containsString(r.URL.Path, "/Server") {
+			w.Write([]byte(`{"ServerID":"server-1","ExternalVersion":"14.0"}`))
+		}
+	}))
+	defer server.Close()
+
+	opts := SessionOptions{
+		BaseURL: server.URL,
+		Credentials: Credentials{
+			Username: "admin",
+			Password: "password",
+		},
+		SkipVersionCheck: false,
+	}
+
+	sess, err := NewSession(context.Background(), opts)
+	if err != nil {
+		t.Errorf("NewSession() unexpected error: %v", err)
+		return
+	}
+
+	if sess == nil {
+		t.Error("NewSession() returned nil session")
+		return
+	}
+
+	// Should have made at least 2 requests (login + version check)
+	if requestCount < 2 {
+		t.Errorf("Expected at least 2 requests, got %d", requestCount)
+	}
+}
+
+func TestNewSession_WithConcurrentSession(t *testing.T) {
+	var capturedBody LoginRequest
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if containsString(r.URL.Path, "/Auth/") {
+			json.NewDecoder(r.Body).Decode(&capturedBody)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"CyberArkLogonResult": "test-token"}`))
+	}))
+	defer server.Close()
+
+	opts := SessionOptions{
+		BaseURL: server.URL,
+		Credentials: Credentials{
+			Username: "admin",
+			Password: "password",
+		},
+		ConcurrentSession: true,
+		SkipVersionCheck:  true,
+	}
+
+	_, err := NewSession(context.Background(), opts)
+	if err != nil {
+		t.Errorf("NewSession() unexpected error: %v", err)
+		return
+	}
+
+	if !capturedBody.ConcurrentSession {
+		t.Error("Expected ConcurrentSession to be true in request body")
+	}
+}
+
+func TestNewSession_DefaultAuthMethod(t *testing.T) {
+	var capturedPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"CyberArkLogonResult": "test-token"}`))
+	}))
+	defer server.Close()
+
+	opts := SessionOptions{
+		BaseURL: server.URL,
+		Credentials: Credentials{
+			Username: "admin",
+			Password: "password",
+		},
+		// AuthMethod not set - should default to CyberArk
+		SkipVersionCheck: true,
+	}
+
+	_, err := NewSession(context.Background(), opts)
+	if err != nil {
+		t.Errorf("NewSession() unexpected error: %v", err)
+		return
+	}
+
+	if !containsString(capturedPath, "/Auth/CyberArk/Logon") {
+		t.Errorf("Default auth method should be CyberArk, got path: %s", capturedPath)
+	}
+}
+
 func TestCloseSession(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -308,6 +458,70 @@ func TestGetServerInfo_NilSession(t *testing.T) {
 	_, err := GetServerInfo(context.Background(), nil)
 	if err == nil {
 		t.Error("GetServerInfo() expected error for nil session")
+	}
+}
+
+func TestCloseSession_ServerError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	sess, err := session.NewSession(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create session: %v", err)
+	}
+	sess.SetAuthenticated("user", "token", "CyberArk")
+
+	err = CloseSession(context.Background(), sess)
+	if err == nil {
+		t.Error("CloseSession() expected error for server error, got nil")
+	}
+}
+
+func TestGetComponentsHealth_InvalidSession(t *testing.T) {
+	_, err := GetComponentsHealth(context.Background(), nil)
+	if err == nil {
+		t.Error("GetComponentsHealth() expected error for nil session")
+	}
+}
+
+func TestGetServerInfo_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`invalid json`))
+	}))
+	defer server.Close()
+
+	sess, err := session.NewSession(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create session: %v", err)
+	}
+
+	_, err = GetServerInfo(context.Background(), sess)
+	if err == nil {
+		t.Error("GetServerInfo() expected error for invalid JSON, got nil")
+	}
+}
+
+func TestGetComponentsHealth_InvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`invalid json`))
+	}))
+	defer server.Close()
+
+	sess, err := session.NewSession(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create session: %v", err)
+	}
+	sess.SetAuthenticated("user", "token", "CyberArk")
+
+	_, err = GetComponentsHealth(context.Background(), sess)
+	if err == nil {
+		t.Error("GetComponentsHealth() expected error for invalid JSON, got nil")
 	}
 }
 

@@ -147,6 +147,218 @@ func TestList_InvalidSession(t *testing.T) {
 	}
 }
 
+func TestList_AllOptions(t *testing.T) {
+	componentUser := true
+	tests := []struct {
+		name        string
+		opts        ListOptions
+		checkParams func(t *testing.T, params map[string]string)
+	}{
+		{
+			name: "with sort option",
+			opts: ListOptions{Sort: "username"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["sort"] != "username" {
+					t.Errorf("sort param = %v, want username", params["sort"])
+				}
+			},
+		},
+		{
+			name: "with offset option",
+			opts: ListOptions{Offset: 10},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["offset"] != "10" {
+					t.Errorf("offset param = %v, want 10", params["offset"])
+				}
+			},
+		},
+		{
+			name: "with limit option",
+			opts: ListOptions{Limit: 25},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["limit"] != "25" {
+					t.Errorf("limit param = %v, want 25", params["limit"])
+				}
+			},
+		},
+		{
+			name: "with filter option",
+			opts: ListOptions{Filter: "userType eq EPVUser"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["filter"] != "userType eq EPVUser" {
+					t.Errorf("filter param = %v, want userType eq EPVUser", params["filter"])
+				}
+			},
+		},
+		{
+			name: "with componentUser option",
+			opts: ListOptions{ComponentUser: &componentUser},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["componentUser"] != "true" {
+					t.Errorf("componentUser param = %v, want true", params["componentUser"])
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var capturedParams map[string]string
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				capturedParams = make(map[string]string)
+				for key, values := range r.URL.Query() {
+					if len(values) > 0 {
+						capturedParams[key] = values[0]
+					}
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(&UsersResponse{Users: []User{}, Total: 0})
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			_, err := List(context.Background(), sess, tt.opts)
+			if err != nil {
+				t.Errorf("List() unexpected error: %v", err)
+				return
+			}
+
+			tt.checkParams(t, capturedParams)
+		})
+	}
+}
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("Get() expected error for nil session, got nil")
+	}
+}
+
+func TestCreate_InvalidSession(t *testing.T) {
+	_, err := Create(context.Background(), nil, CreateOptions{Username: "test"})
+	if err == nil {
+		t.Error("Create() expected error for nil session, got nil")
+	}
+}
+
+func TestUpdate_InvalidSession(t *testing.T) {
+	_, err := Update(context.Background(), nil, 1, UpdateOptions{})
+	if err == nil {
+		t.Error("Update() expected error for nil session, got nil")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("Delete() expected error for nil session, got nil")
+	}
+}
+
+func TestActivateUser_InvalidSession(t *testing.T) {
+	_, err := ActivateUser(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("ActivateUser() expected error for nil session, got nil")
+	}
+}
+
+func TestResetPassword_InvalidSession(t *testing.T) {
+	err := ResetPassword(context.Background(), nil, 1, "newpass")
+	if err == nil {
+		t.Error("ResetPassword() expected error for nil session, got nil")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, 1)
+	if err == nil {
+		t.Error("Get() expected error for server error, got nil")
+	}
+}
+
+func TestCreate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Create(context.Background(), sess, CreateOptions{
+		Username:        "newuser",
+		InitialPassword: "pass123",
+	})
+	if err == nil {
+		t.Error("Create() expected error for server error, got nil")
+	}
+}
+
+func TestUpdate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Update(context.Background(), sess, 1, UpdateOptions{Description: "test"})
+	if err == nil {
+		t.Error("Update() expected error for server error, got nil")
+	}
+}
+
+func TestDelete_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Delete(context.Background(), sess, 1)
+	if err == nil {
+		t.Error("Delete() expected error for server error, got nil")
+	}
+}
+
+func TestActivateUser_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ActivateUser(context.Background(), sess, 1)
+	if err == nil {
+		t.Error("ActivateUser() expected error for server error, got nil")
+	}
+}
+
+func TestResetPassword_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := ResetPassword(context.Background(), sess, 1, "newpass")
+	if err == nil {
+		t.Error("ResetPassword() expected error for server error, got nil")
+	}
+}
+
 func TestGet(t *testing.T) {
 	tests := []struct {
 		name           string
