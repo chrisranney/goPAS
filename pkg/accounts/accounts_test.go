@@ -162,6 +162,298 @@ func TestList_InvalidSession(t *testing.T) {
 	}
 }
 
+func TestList_AllOptions(t *testing.T) {
+	tests := []struct {
+		name        string
+		opts        ListOptions
+		checkParams func(t *testing.T, params map[string]string)
+	}{
+		{
+			name: "with searchType option",
+			opts: ListOptions{SearchType: "contains"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["searchType"] != "contains" {
+					t.Errorf("searchType param = %v, want contains", params["searchType"])
+				}
+			},
+		},
+		{
+			name: "with sort option",
+			opts: ListOptions{Sort: "name"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["sort"] != "name" {
+					t.Errorf("sort param = %v, want name", params["sort"])
+				}
+			},
+		},
+		{
+			name: "with filter option",
+			opts: ListOptions{Filter: "safeName eq TestSafe"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["filter"] != "safeName eq TestSafe" {
+					t.Errorf("filter param = %v, want safeName eq TestSafe", params["filter"])
+				}
+			},
+		},
+		{
+			name: "with safeName option",
+			opts: ListOptions{SafeName: "MySafe"},
+			checkParams: func(t *testing.T, params map[string]string) {
+				if params["filter"] != "safeName eq MySafe" {
+					t.Errorf("filter param = %v, want safeName eq MySafe", params["filter"])
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var capturedParams map[string]string
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				capturedParams = make(map[string]string)
+				for key, values := range r.URL.Query() {
+					if len(values) > 0 {
+						capturedParams[key] = values[0]
+					}
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(&AccountsResponse{Value: []Account{}, Count: 0})
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+			_, err := List(context.Background(), sess, tt.opts)
+			if err != nil {
+				t.Errorf("List() unexpected error: %v", err)
+				return
+			}
+
+			tt.checkParams(t, capturedParams)
+		})
+	}
+}
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("Get() expected error for nil session, got nil")
+	}
+}
+
+func TestCreate_InvalidSession(t *testing.T) {
+	_, err := Create(context.Background(), nil, CreateOptions{
+		SafeName:   "safe",
+		PlatformID: "platform",
+		Address:    "server",
+		UserName:   "user",
+	})
+	if err == nil {
+		t.Error("Create() expected error for nil session, got nil")
+	}
+}
+
+func TestUpdate_InvalidSession(t *testing.T) {
+	_, err := Update(context.Background(), nil, "123", []PatchOperation{})
+	if err == nil {
+		t.Error("Update() expected error for nil session, got nil")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("Delete() expected error for nil session, got nil")
+	}
+}
+
+func TestGetPassword_InvalidSession(t *testing.T) {
+	_, err := GetPassword(context.Background(), nil, "123", "testing")
+	if err == nil {
+		t.Error("GetPassword() expected error for nil session, got nil")
+	}
+}
+
+func TestChangeCredentialsImmediately_InvalidSession(t *testing.T) {
+	err := ChangeCredentialsImmediately(context.Background(), nil, "123", ChangeCredentialsOptions{})
+	if err == nil {
+		t.Error("ChangeCredentialsImmediately() expected error for nil session, got nil")
+	}
+}
+
+func TestVerifyCredentials_InvalidSession(t *testing.T) {
+	err := VerifyCredentials(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("VerifyCredentials() expected error for nil session, got nil")
+	}
+}
+
+func TestReconcileCredentials_InvalidSession(t *testing.T) {
+	err := ReconcileCredentials(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("ReconcileCredentials() expected error for nil session, got nil")
+	}
+}
+
+func TestSetNextPassword_InvalidSession(t *testing.T) {
+	err := SetNextPassword(context.Background(), nil, "123", "newpass")
+	if err == nil {
+		t.Error("SetNextPassword() expected error for nil session, got nil")
+	}
+}
+
+func TestGetActivities_InvalidSession(t *testing.T) {
+	_, err := GetActivities(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("GetActivities() expected error for nil session, got nil")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	_, err := Get(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("Get() expected error for server error, got nil")
+	}
+}
+
+func TestCreate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	_, err := Create(context.Background(), sess, CreateOptions{
+		SafeName:   "safe",
+		PlatformID: "platform",
+		Address:    "server",
+		UserName:   "user",
+	})
+	if err == nil {
+		t.Error("Create() expected error for server error, got nil")
+	}
+}
+
+func TestUpdate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	_, err := Update(context.Background(), sess, "123", []PatchOperation{
+		{Op: "replace", Path: "/name", Value: "newname"},
+	})
+	if err == nil {
+		t.Error("Update() expected error for server error, got nil")
+	}
+}
+
+func TestGetPassword_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	_, err := GetPassword(context.Background(), sess, "123", "testing")
+	if err == nil {
+		t.Error("GetPassword() expected error for server error, got nil")
+	}
+}
+
+func TestChangeCredentialsImmediately_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	err := ChangeCredentialsImmediately(context.Background(), sess, "123", ChangeCredentialsOptions{})
+	if err == nil {
+		t.Error("ChangeCredentialsImmediately() expected error for server error, got nil")
+	}
+}
+
+func TestVerifyCredentials_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	err := VerifyCredentials(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("VerifyCredentials() expected error for server error, got nil")
+	}
+}
+
+func TestReconcileCredentials_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	err := ReconcileCredentials(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("ReconcileCredentials() expected error for server error, got nil")
+	}
+}
+
+func TestSetNextPassword_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	err := SetNextPassword(context.Background(), sess, "123", "newpass")
+	if err == nil {
+		t.Error("SetNextPassword() expected error for server error, got nil")
+	}
+}
+
+func TestGetActivities_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	_, err := GetActivities(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("GetActivities() expected error for server error, got nil")
+	}
+}
+
 func TestGet(t *testing.T) {
 	tests := []struct {
 		name           string
