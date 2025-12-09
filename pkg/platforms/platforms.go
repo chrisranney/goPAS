@@ -15,24 +15,24 @@ import (
 
 // Platform represents a CyberArk platform.
 type Platform struct {
-	ID                             string            `json:"id,omitempty"`
-	PlatformID                     string            `json:"platformId,omitempty"`
-	Name                           string            `json:"name"`
-	Active                         bool              `json:"active"`
-	Description                    string            `json:"description,omitempty"`
-	SystemType                     string            `json:"systemType,omitempty"`
-	PlatformType                   string            `json:"platformType,omitempty"`
-	CredentialsManagementPolicy    *CredentialsPolicy `json:"credentialsManagementPolicy,omitempty"`
-	PrivilegedAccessWorkflows      *AccessWorkflows   `json:"privilegedAccessWorkflows,omitempty"`
-	PrivilegedSessionManagement    *SessionManagement `json:"privilegedSessionManagement,omitempty"`
-	AllowedSafes                   string            `json:"allowedSafes,omitempty"`
+	ID                          string             `json:"id,omitempty"`
+	PlatformID                  string             `json:"platformId,omitempty"`
+	Name                        string             `json:"name"`
+	Active                      bool               `json:"active"`
+	Description                 string             `json:"description,omitempty"`
+	SystemType                  string             `json:"systemType,omitempty"`
+	PlatformType                string             `json:"platformType,omitempty"`
+	CredentialsManagementPolicy *CredentialsPolicy `json:"credentialsManagementPolicy,omitempty"`
+	PrivilegedAccessWorkflows   *AccessWorkflows   `json:"privilegedAccessWorkflows,omitempty"`
+	PrivilegedSessionManagement *SessionManagement `json:"privilegedSessionManagement,omitempty"`
+	AllowedSafes                string             `json:"allowedSafes,omitempty"`
 }
 
 // CredentialsPolicy represents credentials management policy.
 type CredentialsPolicy struct {
-	Verification          *VerificationPolicy  `json:"verification,omitempty"`
-	Change                *ChangePolicy        `json:"change,omitempty"`
-	Reconcile             *ReconcilePolicy     `json:"reconcile,omitempty"`
+	Verification              *VerificationPolicy `json:"verification,omitempty"`
+	Change                    *ChangePolicy       `json:"change,omitempty"`
+	Reconcile                 *ReconcilePolicy    `json:"reconcile,omitempty"`
 	SecretUpdateConfiguration *SecretUpdateConfig `json:"secretUpdateConfiguration,omitempty"`
 }
 
@@ -72,40 +72,40 @@ type AccessWorkflows struct {
 
 // DualControlPolicy represents dual control settings.
 type DualControlPolicy struct {
-	IsActive       bool `json:"isActive"`
-	IsAnException  bool `json:"isAnException,omitempty"`
+	IsActive      bool `json:"isActive"`
+	IsAnException bool `json:"isAnException,omitempty"`
 }
 
 // CheckinCheckout represents check-in/check-out settings.
 type CheckinCheckout struct {
-	IsActive       bool `json:"isActive"`
-	IsAnException  bool `json:"isAnException,omitempty"`
+	IsActive      bool `json:"isActive"`
+	IsAnException bool `json:"isAnException,omitempty"`
 }
 
 // OneTimePassword represents one-time password settings.
 type OneTimePassword struct {
-	IsActive       bool `json:"isActive"`
-	IsAnException  bool `json:"isAnException,omitempty"`
+	IsActive      bool `json:"isActive"`
+	IsAnException bool `json:"isAnException,omitempty"`
 }
 
 // SessionManagement represents privileged session management settings.
 type SessionManagement struct {
-	PSMServerID        string `json:"psmServerId,omitempty"`
-	PSMServerName      string `json:"psmServerName,omitempty"`
-	RequirePrivilegedSessionMonitoringAndIsolation *PSMPolicy `json:"requirePrivilegedSessionMonitoringAndIsolation,omitempty"`
-	RecordAndSaveSessionActivity *RecordingPolicy `json:"recordAndSaveSessionActivity,omitempty"`
+	PSMServerID                                    string           `json:"psmServerId,omitempty"`
+	PSMServerName                                  string           `json:"psmServerName,omitempty"`
+	RequirePrivilegedSessionMonitoringAndIsolation *PSMPolicy       `json:"requirePrivilegedSessionMonitoringAndIsolation,omitempty"`
+	RecordAndSaveSessionActivity                   *RecordingPolicy `json:"recordAndSaveSessionActivity,omitempty"`
 }
 
 // PSMPolicy represents PSM policy settings.
 type PSMPolicy struct {
-	IsActive       bool `json:"isActive"`
-	IsAnException  bool `json:"isAnException,omitempty"`
+	IsActive      bool `json:"isActive"`
+	IsAnException bool `json:"isAnException,omitempty"`
 }
 
 // RecordingPolicy represents recording policy settings.
 type RecordingPolicy struct {
-	IsActive       bool `json:"isActive"`
-	IsAnException  bool `json:"isAnException,omitempty"`
+	IsActive      bool `json:"isActive"`
+	IsAnException bool `json:"isAnException,omitempty"`
 }
 
 // PlatformsResponse represents the response from listing platforms.
@@ -116,10 +116,10 @@ type PlatformsResponse struct {
 
 // ListOptions holds options for listing platforms.
 type ListOptions struct {
-	Search     string
-	Active     *bool
+	Search       string
+	Active       *bool
 	PlatformType string
-	SystemType string
+	SystemType   string
 }
 
 // List retrieves platforms from CyberArk.

@@ -264,34 +264,34 @@ func TestSession_Clone(t *testing.T) {
 
 func TestSession_IsValid(t *testing.T) {
 	tests := []struct {
-		name           string
+		name            string
 		isAuthenticated bool
-		sessionToken   string
-		expected       bool
+		sessionToken    string
+		expected        bool
 	}{
 		{
-			name:           "valid session",
+			name:            "valid session",
 			isAuthenticated: true,
-			sessionToken:   "valid-token",
-			expected:       true,
+			sessionToken:    "valid-token",
+			expected:        true,
 		},
 		{
-			name:           "not authenticated",
+			name:            "not authenticated",
 			isAuthenticated: false,
-			sessionToken:   "token",
-			expected:       false,
+			sessionToken:    "token",
+			expected:        false,
 		},
 		{
-			name:           "empty token",
+			name:            "empty token",
 			isAuthenticated: true,
-			sessionToken:   "",
-			expected:       false,
+			sessionToken:    "",
+			expected:        false,
 		},
 		{
-			name:           "not authenticated and empty token",
+			name:            "not authenticated and empty token",
 			isAuthenticated: false,
-			sessionToken:   "",
-			expected:       false,
+			sessionToken:    "",
+			expected:        false,
 		},
 	}
 

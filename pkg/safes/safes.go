@@ -15,21 +15,21 @@ import (
 
 // Safe represents a CyberArk safe.
 type Safe struct {
-	SafeURLId                    string   `json:"safeUrlId"`
-	SafeName                     string   `json:"safeName"`
-	SafeNumber                   int      `json:"safeNumber"`
-	Description                  string   `json:"description,omitempty"`
-	Location                     string   `json:"location,omitempty"`
-	Creator                      *Creator `json:"creator,omitempty"`
-	OLACEnabled                  bool     `json:"olacEnabled"`
-	ManagingCPM                  string   `json:"managingCPM,omitempty"`
-	NumberOfVersionsRetention    *int     `json:"numberOfVersionsRetention,omitempty"`
-	NumberOfDaysRetention        int      `json:"numberOfDaysRetention,omitempty"`
-	AutoPurgeEnabled             bool     `json:"autoPurgeEnabled"`
-	CreationTime                 int64    `json:"creationTime"`
-	LastModificationTime         int64    `json:"lastModificationTime,omitempty"`
-	IsExpiredMember              bool     `json:"isExpiredMember,omitempty"`
-	Accounts                     *int     `json:"accounts,omitempty"`
+	SafeURLId                 string   `json:"safeUrlId"`
+	SafeName                  string   `json:"safeName"`
+	SafeNumber                int      `json:"safeNumber"`
+	Description               string   `json:"description,omitempty"`
+	Location                  string   `json:"location,omitempty"`
+	Creator                   *Creator `json:"creator,omitempty"`
+	OLACEnabled               bool     `json:"olacEnabled"`
+	ManagingCPM               string   `json:"managingCPM,omitempty"`
+	NumberOfVersionsRetention *int     `json:"numberOfVersionsRetention,omitempty"`
+	NumberOfDaysRetention     int      `json:"numberOfDaysRetention,omitempty"`
+	AutoPurgeEnabled          bool     `json:"autoPurgeEnabled"`
+	CreationTime              int64    `json:"creationTime"`
+	LastModificationTime      int64    `json:"lastModificationTime,omitempty"`
+	IsExpiredMember           bool     `json:"isExpiredMember,omitempty"`
+	Accounts                  *int     `json:"accounts,omitempty"`
 }
 
 // Creator represents the safe creator information.
@@ -47,10 +47,10 @@ type SafesResponse struct {
 
 // ListOptions holds options for listing safes.
 type ListOptions struct {
-	Search       string
-	Sort         string
-	Offset       int
-	Limit        int
+	Search          string
+	Sort            string
+	Offset          int
+	Limit           int
 	IncludeAccounts bool
 	ExtendedDetails bool
 }

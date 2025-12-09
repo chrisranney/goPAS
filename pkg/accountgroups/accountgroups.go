@@ -14,11 +14,11 @@ import (
 
 // AccountGroup represents an account group.
 type AccountGroup struct {
-	GroupID       string              `json:"GroupID"`
-	GroupName     string              `json:"GroupName"`
-	GroupPlatformID string            `json:"GroupPlatformID,omitempty"`
-	Safe          string              `json:"Safe"`
-	Members       []AccountGroupMember `json:"Members,omitempty"`
+	GroupID         string               `json:"GroupID"`
+	GroupName       string               `json:"GroupName"`
+	GroupPlatformID string               `json:"GroupPlatformID,omitempty"`
+	Safe            string               `json:"Safe"`
+	Members         []AccountGroupMember `json:"Members,omitempty"`
 }
 
 // AccountGroupMember represents a member of an account group.

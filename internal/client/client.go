@@ -26,10 +26,10 @@ type Client struct {
 
 // Config holds the client configuration options.
 type Config struct {
-	BaseURL            string
-	Timeout            time.Duration
-	SkipTLSVerify      bool
-	CustomHTTPClient   *http.Client
+	BaseURL          string
+	Timeout          time.Duration
+	SkipTLSVerify    bool
+	CustomHTTPClient *http.Client
 }
 
 // NewClient creates a new HTTP client for CyberArk API communication.

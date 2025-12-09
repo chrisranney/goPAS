@@ -15,17 +15,17 @@ import (
 
 // SafeMember represents a safe member.
 type SafeMember struct {
-	SafeURLID              string      `json:"safeUrlId,omitempty"`
-	SafeName               string      `json:"safeName,omitempty"`
-	SafeNumber             int         `json:"safeNumber,omitempty"`
-	MemberID               string      `json:"memberId,omitempty"`
-	MemberName             string      `json:"memberName"`
-	MemberType             string      `json:"memberType,omitempty"`
-	MembershipExpirationDate int64     `json:"membershipExpirationDate,omitempty"`
-	IsExpiredMembershipEnable bool     `json:"isExpiredMembershipEnable,omitempty"`
-	IsPredefinedUser       bool        `json:"isPredefinedUser,omitempty"`
-	IsReadOnly             bool        `json:"isReadOnly,omitempty"`
-	Permissions            *Permissions `json:"permissions"`
+	SafeURLID                 string       `json:"safeUrlId,omitempty"`
+	SafeName                  string       `json:"safeName,omitempty"`
+	SafeNumber                int          `json:"safeNumber,omitempty"`
+	MemberID                  string       `json:"memberId,omitempty"`
+	MemberName                string       `json:"memberName"`
+	MemberType                string       `json:"memberType,omitempty"`
+	MembershipExpirationDate  int64        `json:"membershipExpirationDate,omitempty"`
+	IsExpiredMembershipEnable bool         `json:"isExpiredMembershipEnable,omitempty"`
+	IsPredefinedUser          bool         `json:"isPredefinedUser,omitempty"`
+	IsReadOnly                bool         `json:"isReadOnly,omitempty"`
+	Permissions               *Permissions `json:"permissions"`
 }
 
 // Permissions represents the permissions for a safe member.
@@ -140,10 +140,10 @@ func Get(ctx context.Context, sess *session.Session, safeName string, memberName
 
 // AddOptions holds options for adding a safe member.
 type AddOptions struct {
-	MemberName                 string       `json:"memberName"`
-	SearchIn                   string       `json:"searchIn,omitempty"`
-	MembershipExpirationDate   int64        `json:"membershipExpirationDate,omitempty"`
-	Permissions                *Permissions `json:"permissions"`
+	MemberName               string       `json:"memberName"`
+	SearchIn                 string       `json:"searchIn,omitempty"`
+	MembershipExpirationDate int64        `json:"membershipExpirationDate,omitempty"`
+	Permissions              *Permissions `json:"permissions"`
 }
 
 // Add adds a member to a safe.

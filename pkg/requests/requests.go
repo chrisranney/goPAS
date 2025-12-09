@@ -15,27 +15,27 @@ import (
 
 // Request represents an access request.
 type Request struct {
-	RequestID               string          `json:"RequestID"`
-	SafeName                string          `json:"SafeName"`
-	RequestorUserName       string          `json:"RequestorUserName"`
-	RequestorReason         string          `json:"RequestorReason,omitempty"`
-	UserReason              string          `json:"UserReason,omitempty"`
-	CreationDate            int64           `json:"CreationDate"`
-	Operation               string          `json:"Operation"`
-	ExpirationDate          int64           `json:"ExpirationDate,omitempty"`
-	OperationType           int             `json:"OperationType"`
-	AccessType              string          `json:"AccessType,omitempty"`
-	ConfirmationsLeft       int             `json:"ConfirmationsLeft"`
-	AccessFrom              int64           `json:"AccessFrom,omitempty"`
-	AccessTo                int64           `json:"AccessTo,omitempty"`
-	Status                  int             `json:"Status"`
-	StatusTitle             string          `json:"StatusTitle,omitempty"`
-	InvalidRequestReason    string          `json:"InvalidRequestReason,omitempty"`
-	CurrentConfirmationLevel int            `json:"CurrentConfirmationLevel"`
-	RequiredConfirmers      int             `json:"RequiredConfirmers"`
-	ConfirmedByUser         string          `json:"ConfirmedByUser,omitempty"`
-	AdditionalInfo          map[string]interface{} `json:"AdditionalInfo,omitempty"`
-	AccountDetails          *AccountDetails `json:"AccountDetails,omitempty"`
+	RequestID                string                 `json:"RequestID"`
+	SafeName                 string                 `json:"SafeName"`
+	RequestorUserName        string                 `json:"RequestorUserName"`
+	RequestorReason          string                 `json:"RequestorReason,omitempty"`
+	UserReason               string                 `json:"UserReason,omitempty"`
+	CreationDate             int64                  `json:"CreationDate"`
+	Operation                string                 `json:"Operation"`
+	ExpirationDate           int64                  `json:"ExpirationDate,omitempty"`
+	OperationType            int                    `json:"OperationType"`
+	AccessType               string                 `json:"AccessType,omitempty"`
+	ConfirmationsLeft        int                    `json:"ConfirmationsLeft"`
+	AccessFrom               int64                  `json:"AccessFrom,omitempty"`
+	AccessTo                 int64                  `json:"AccessTo,omitempty"`
+	Status                   int                    `json:"Status"`
+	StatusTitle              string                 `json:"StatusTitle,omitempty"`
+	InvalidRequestReason     string                 `json:"InvalidRequestReason,omitempty"`
+	CurrentConfirmationLevel int                    `json:"CurrentConfirmationLevel"`
+	RequiredConfirmers       int                    `json:"RequiredConfirmers"`
+	ConfirmedByUser          string                 `json:"ConfirmedByUser,omitempty"`
+	AdditionalInfo           map[string]interface{} `json:"AdditionalInfo,omitempty"`
+	AccountDetails           *AccountDetails        `json:"AccountDetails,omitempty"`
 }
 
 // AccountDetails holds account information for a request.
@@ -133,17 +133,17 @@ func ListMyRequests(ctx context.Context, sess *session.Session, opts ListOptions
 
 // CreateOptions holds options for creating an access request.
 type CreateOptions struct {
-	AccountID               string `json:"AccountId"`
-	Reason                  string `json:"Reason,omitempty"`
-	TicketingSystemName     string `json:"TicketingSystemName,omitempty"`
-	TicketID                string `json:"TicketId,omitempty"`
-	MultipleAccessRequired  bool   `json:"MultipleAccessRequired,omitempty"`
-	FromDate                int64  `json:"FromDate,omitempty"`
-	ToDate                  int64  `json:"ToDate,omitempty"`
-	AdditionalInfo          map[string]string `json:"AdditionalInfo,omitempty"`
-	UseConnect              bool   `json:"UseConnect,omitempty"`
-	ConnectionComponent     string `json:"ConnectionComponent,omitempty"`
-	ConnectionParams        map[string]string `json:"ConnectionParams,omitempty"`
+	AccountID              string            `json:"AccountId"`
+	Reason                 string            `json:"Reason,omitempty"`
+	TicketingSystemName    string            `json:"TicketingSystemName,omitempty"`
+	TicketID               string            `json:"TicketId,omitempty"`
+	MultipleAccessRequired bool              `json:"MultipleAccessRequired,omitempty"`
+	FromDate               int64             `json:"FromDate,omitempty"`
+	ToDate                 int64             `json:"ToDate,omitempty"`
+	AdditionalInfo         map[string]string `json:"AdditionalInfo,omitempty"`
+	UseConnect             bool              `json:"UseConnect,omitempty"`
+	ConnectionComponent    string            `json:"ConnectionComponent,omitempty"`
+	ConnectionParams       map[string]string `json:"ConnectionParams,omitempty"`
 }
 
 // Create creates a new access request.
