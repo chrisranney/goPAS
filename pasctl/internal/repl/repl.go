@@ -72,6 +72,7 @@ func (r *REPL) registerCommands() {
 	r.registry.Register(&commands.ConnectCommand{})
 	r.registry.Register(&commands.DisconnectCommand{})
 	r.registry.Register(&commands.StatusCommand{})
+	r.registry.Register(&commands.CCPCommand{})
 
 	// Resource commands
 	r.registry.Register(&commands.AccountsCommand{})

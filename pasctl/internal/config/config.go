@@ -15,6 +15,52 @@ type Config struct {
 	HistorySize     int    `json:"history_size,omitempty"`
 	InsecureSSL     bool   `json:"insecure_ssl,omitempty"`
 	Timeout         int    `json:"timeout_seconds,omitempty"`
+
+	// CCP (Central Credential Provider) settings for default login
+	// Note: Passwords are NEVER stored - they are retrieved from CCP at runtime
+	CCP *CCPConfig `json:"ccp,omitempty"`
+}
+
+// CCPConfig holds CCP configuration for default login.
+// This allows automatic login using credentials retrieved from CyberArk CCP.
+type CCPConfig struct {
+	// Enabled indicates whether CCP default login is enabled
+	Enabled bool `json:"enabled,omitempty"`
+
+	// CCPURL is the CCP server URL (e.g., https://cyberark.example.com)
+	// If empty, uses DefaultServer
+	CCPURL string `json:"ccp_url,omitempty"`
+
+	// AppID is the application ID registered in CyberArk for CCP access (required)
+	AppID string `json:"app_id,omitempty"`
+
+	// Safe is the safe containing the login credential (required)
+	Safe string `json:"safe,omitempty"`
+
+	// Object is the account object name (optional, use with Folder or UserName/Address)
+	Object string `json:"object,omitempty"`
+
+	// Folder is the folder path within the safe (optional)
+	Folder string `json:"folder,omitempty"`
+
+	// UserName filters by username (optional)
+	UserName string `json:"username,omitempty"`
+
+	// Address filters by address/hostname (optional)
+	Address string `json:"address,omitempty"`
+
+	// Query is a free-text search query (optional)
+	Query string `json:"query,omitempty"`
+
+	// AuthMethod is the auth method to use after retrieving credentials
+	// Defaults to DefaultAuthType if not specified
+	AuthMethod string `json:"auth_method,omitempty"`
+
+	// ClientCert path for mutual TLS authentication with CCP (optional)
+	ClientCert string `json:"client_cert,omitempty"`
+
+	// ClientKey path for mutual TLS authentication with CCP (optional)
+	ClientKey string `json:"client_key,omitempty"`
 }
 
 // Default returns the default configuration.
@@ -123,4 +169,25 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// IsCCPEnabled returns true if CCP default login is configured and enabled.
+func (c *Config) IsCCPEnabled() bool {
+	return c.CCP != nil && c.CCP.Enabled && c.CCP.AppID != "" && c.CCP.Safe != ""
+}
+
+// GetCCPURL returns the CCP URL, falling back to DefaultServer if not specified.
+func (c *Config) GetCCPURL() string {
+	if c.CCP != nil && c.CCP.CCPURL != "" {
+		return c.CCP.CCPURL
+	}
+	return c.DefaultServer
+}
+
+// GetCCPAuthMethod returns the auth method for CCP login.
+func (c *Config) GetCCPAuthMethod() string {
+	if c.CCP != nil && c.CCP.AuthMethod != "" {
+		return c.CCP.AuthMethod
+	}
+	return c.DefaultAuthType
 }

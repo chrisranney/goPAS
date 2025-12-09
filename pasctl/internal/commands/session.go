@@ -28,7 +28,7 @@ func (c *ConnectCommand) Description() string {
 }
 
 func (c *ConnectCommand) Usage() string {
-	return `connect <server-url> [options]
+	return `connect [server-url] [options]
 
 Connect and authenticate to a CyberArk PAS server.
 
@@ -39,11 +39,15 @@ Options:
   --user=USERNAME     Username for authentication
   --auth=METHOD       Authentication method: cyberark, ldap, radius, windows (default: cyberark)
   --insecure          Skip TLS certificate verification
+  --ccp               Use CCP (Central Credential Provider) for default login
+                      Requires CCP to be configured (see 'ccp setup')
 
 Examples:
   connect https://cyberark.example.com
   connect https://cyberark.example.com --user=admin --auth=ldap
   connect https://cyberark.example.com --insecure
+  connect --ccp                          # Use CCP default login
+  connect https://cyberark.example.com --ccp
 `
 }
 
@@ -54,7 +58,7 @@ func (c *ConnectCommand) Execute(execCtx *ExecutionContext, args []string) error
 
 	// Parse arguments
 	var serverURL, username, authMethod string
-	var insecure bool
+	var insecure, useCCP bool
 
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "--user=") {
@@ -63,52 +67,119 @@ func (c *ConnectCommand) Execute(execCtx *ExecutionContext, args []string) error
 			authMethod = strings.ToLower(strings.TrimPrefix(arg, "--auth="))
 		} else if arg == "--insecure" {
 			insecure = true
+		} else if arg == "--ccp" {
+			useCCP = true
 		} else if !strings.HasPrefix(arg, "-") && serverURL == "" {
 			serverURL = arg
 		}
 	}
 
-	if serverURL == "" {
-		if execCtx.Config.DefaultServer != "" {
+	var password string
+	var err error
+
+	// Handle CCP login
+	if useCCP {
+		if !execCtx.Config.IsCCPEnabled() {
+			return fmt.Errorf("CCP is not configured - use 'ccp setup' to configure")
+		}
+
+		// Use CCP URL or server URL from config
+		ccpURL := execCtx.Config.GetCCPURL()
+		if ccpURL == "" && serverURL != "" {
+			ccpURL = serverURL
+		}
+		if ccpURL == "" {
+			return fmt.Errorf("no CCP URL configured and no server URL provided")
+		}
+
+		// Use server URL from config if not provided
+		if serverURL == "" {
 			serverURL = execCtx.Config.DefaultServer
-		} else {
-			return fmt.Errorf("server URL required")
+		}
+		if serverURL == "" {
+			serverURL = ccpURL
+		}
+
+		output.PrintInfo("Retrieving credentials from CCP...")
+
+		// Create CCP client
+		ccpClient, err := gopas.NewCCPClient(gopas.CCPClientConfig{
+			BaseURL:       ccpURL,
+			SkipTLSVerify: insecure || execCtx.Config.InsecureSSL,
+			Timeout:       time.Duration(execCtx.Config.Timeout) * time.Second,
+			ClientCert:    execCtx.Config.CCP.ClientCert,
+			ClientKey:     execCtx.Config.CCP.ClientKey,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create CCP client: %w", err)
+		}
+
+		// Build CCP request
+		ccpReq := gopas.CCPCredentialRequest{
+			AppID:    execCtx.Config.CCP.AppID,
+			Safe:     execCtx.Config.CCP.Safe,
+			Object:   execCtx.Config.CCP.Object,
+			Folder:   execCtx.Config.CCP.Folder,
+			UserName: execCtx.Config.CCP.UserName,
+			Address:  execCtx.Config.CCP.Address,
+			Query:    execCtx.Config.CCP.Query,
+		}
+
+		// Retrieve credentials from CCP
+		username, password, err = gopas.CCPGetLoginCredentials(execCtx.Ctx, ccpClient, ccpReq)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve credentials from CCP: %w", err)
+		}
+
+		output.PrintSuccess("Retrieved credentials for user: %s", username)
+
+		// Use CCP auth method if configured
+		if authMethod == "" {
+			authMethod = execCtx.Config.GetCCPAuthMethod()
+		}
+	} else {
+		// Standard login flow
+		if serverURL == "" {
+			if execCtx.Config.DefaultServer != "" {
+				serverURL = execCtx.Config.DefaultServer
+			} else {
+				return fmt.Errorf("server URL required")
+			}
+		}
+
+		// Prompt for username if not provided
+		if username == "" {
+			username, err = prompt("Username: ")
+			if err != nil {
+				return err
+			}
+		}
+
+		// Prompt for password
+		password, err = promptPassword("Password: ")
+		if err != nil {
+			return err
+		}
+
+		// Prompt for auth method if not provided
+		if authMethod == "" {
+			if execCtx.Config.DefaultAuthType != "" {
+				authMethod = execCtx.Config.DefaultAuthType
+			} else {
+				authMethod, err = prompt("Auth Method [cyberark/ldap/radius]: ")
+				if err != nil {
+					return err
+				}
+				if authMethod == "" {
+					authMethod = "cyberark"
+				}
+			}
 		}
 	}
 
 	// Ensure URL has scheme
 	if !strings.HasPrefix(serverURL, "http://") && !strings.HasPrefix(serverURL, "https://") {
 		serverURL = "https://" + serverURL
-	}
-
-	// Prompt for username if not provided
-	if username == "" {
-		var err error
-		username, err = prompt("Username: ")
-		if err != nil {
-			return err
-		}
-	}
-
-	// Prompt for password
-	password, err := promptPassword("Password: ")
-	if err != nil {
-		return err
-	}
-
-	// Prompt for auth method if not provided
-	if authMethod == "" {
-		if execCtx.Config.DefaultAuthType != "" {
-			authMethod = execCtx.Config.DefaultAuthType
-		} else {
-			authMethod, err = prompt("Auth Method [cyberark/ldap/radius]: ")
-			if err != nil {
-				return err
-			}
-			if authMethod == "" {
-				authMethod = "cyberark"
-			}
-		}
 	}
 
 	// Map auth method string to type

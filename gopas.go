@@ -67,6 +67,7 @@ import (
 	"github.com/chrisranney/gopas/internal/session"
 	"github.com/chrisranney/gopas/pkg/accounts"
 	"github.com/chrisranney/gopas/pkg/authentication"
+	"github.com/chrisranney/gopas/pkg/ccp"
 	"github.com/chrisranney/gopas/pkg/safes"
 )
 
@@ -184,4 +185,38 @@ func DeleteSafe(ctx context.Context, sess *Session, safeName string) error {
 // GetServerInfo retrieves CyberArk server information.
 func GetServerInfo(ctx context.Context, sess *Session) (*authentication.ServerInfo, error) {
 	return authentication.GetServerInfo(ctx, sess)
+}
+
+// CCP (Central Credential Provider) types and functions
+
+// CCPClient represents a CCP client for retrieving credentials.
+type CCPClient = ccp.Client
+
+// CCPClientConfig holds configuration for creating a CCP client.
+type CCPClientConfig = ccp.ClientConfig
+
+// CCPCredentialRequest represents a request to retrieve credentials from CCP.
+type CCPCredentialRequest = ccp.CredentialRequest
+
+// CCPCredentialResponse represents the response from a CCP credential request.
+type CCPCredentialResponse = ccp.CredentialResponse
+
+// NewCCPClient creates a new CCP client.
+func NewCCPClient(cfg CCPClientConfig) (*CCPClient, error) {
+	return ccp.NewClient(cfg)
+}
+
+// CCPGetCredential retrieves a credential from CCP.
+func CCPGetCredential(ctx context.Context, client *CCPClient, req CCPCredentialRequest) (*CCPCredentialResponse, error) {
+	return client.GetCredential(ctx, req)
+}
+
+// CCPGetPassword is a convenience function to retrieve just the password from CCP.
+func CCPGetPassword(ctx context.Context, client *CCPClient, req CCPCredentialRequest) (string, error) {
+	return client.GetPassword(ctx, req)
+}
+
+// CCPGetLoginCredentials retrieves credentials suitable for logging into CyberArk PVWA.
+func CCPGetLoginCredentials(ctx context.Context, client *CCPClient, req CCPCredentialRequest) (username, password string, err error) {
+	return client.GetLoginCredentials(ctx, req)
 }
