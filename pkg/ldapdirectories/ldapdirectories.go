@@ -10,11 +10,12 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Directory represents an LDAP directory configuration.
 type Directory struct {
-	DirectoryID        string             `json:"DirectoryID,omitempty"`
+	DirectoryID        types.FlexibleID   `json:"DirectoryID,omitempty"`
 	DomainName         string             `json:"DomainName"`
 	DomainBaseContext  string             `json:"DomainBaseContext,omitempty"`
 	BindUsername       string             `json:"BindUsername,omitempty"`
@@ -136,8 +137,8 @@ func Delete(ctx context.Context, sess *session.Session, directoryID string) erro
 
 // DirectoryMapping represents an LDAP directory mapping.
 type DirectoryMapping struct {
-	MappingID             string   `json:"MappingID,omitempty"`
-	DirectoryMappingName  string   `json:"DirectoryMappingName"`
+	MappingID             types.FlexibleID `json:"MappingID,omitempty"`
+	DirectoryMappingName  string           `json:"DirectoryMappingName"`
 	LDAPBranch            string   `json:"LDAPBranch"`
 	DomainGroups          []string `json:"DomainGroups,omitempty"`
 	VaultGroups           []string `json:"VaultGroups,omitempty"`

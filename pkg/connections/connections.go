@@ -10,13 +10,14 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // ConnectionRequest represents a PSM connection request.
 type ConnectionRequest struct {
-	Reason              string            `json:"reason,omitempty"`
-	TicketingSystemName string            `json:"ticketingSystemName,omitempty"`
-	TicketID            string            `json:"ticketId,omitempty"`
+	Reason              string           `json:"reason,omitempty"`
+	TicketingSystemName string           `json:"ticketingSystemName,omitempty"`
+	TicketID            types.FlexibleID `json:"ticketId,omitempty"`
 	ConnectionComponent string            `json:"ConnectionComponent,omitempty"`
 	ConnectionParams    map[string]string `json:"ConnectionParams,omitempty"`
 }
@@ -53,10 +54,10 @@ func Connect(ctx context.Context, sess *session.Session, accountID string, req C
 
 // AdHocConnectRequest represents an ad-hoc PSM connection request.
 type AdHocConnectRequest struct {
-	UserName                string            `json:"userName"`
-	Secret                  string            `json:"secret"`
-	Address                 string            `json:"address"`
-	PlatformID              string            `json:"platformId"`
+	UserName                string           `json:"userName"`
+	Secret                  string           `json:"secret"`
+	Address                 string           `json:"address"`
+	PlatformID              types.FlexibleID `json:"platformId"`
 	ExtraFields             map[string]string `json:"extraFields,omitempty"`
 	PSMConnectPrerequisites *PSMPrerequisites `json:"PSMConnectPrerequisites,omitempty"`
 }
@@ -105,8 +106,8 @@ func AdHocConnect(ctx context.Context, sess *session.Session, req AdHocConnectRe
 
 // ConnectionComponent represents a PSM connection component.
 type ConnectionComponent struct {
-	PSMConnectorID string `json:"PSMConnectorID"`
-	PSMServerID    string `json:"PSMServerID,omitempty"`
+	PSMConnectorID types.FlexibleID `json:"PSMConnectorID"`
+	PSMServerID    types.FlexibleID `json:"PSMServerID,omitempty"`
 }
 
 // GetConnectionComponents retrieves available connection components for a platform.
@@ -137,10 +138,10 @@ func GetConnectionComponents(ctx context.Context, sess *session.Session, platfor
 
 // PSMServer represents a PSM server.
 type PSMServer struct {
-	ID         string `json:"ID"`
-	Name       string `json:"Name"`
-	Address    string `json:"Address,omitempty"`
-	PSMVersion string `json:"PSMVersion,omitempty"`
+	ID         types.FlexibleID `json:"ID"`
+	Name       string           `json:"Name"`
+	Address    string           `json:"Address,omitempty"`
+	PSMVersion string           `json:"PSMVersion,omitempty"`
 }
 
 // GetPSMServers retrieves available PSM servers.

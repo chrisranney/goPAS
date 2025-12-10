@@ -11,6 +11,7 @@ import (
 
 	"github.com/chrisranney/gopas/internal/client"
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // AuthMethod represents the authentication method to use.
@@ -68,12 +69,12 @@ type LoginResponse struct {
 
 // ServerInfo represents the CyberArk server information.
 type ServerInfo struct {
-	ServerID         string  `json:"ServerID"`
-	ServerName       string  `json:"ServerName"`
-	ServicesUsed     string  `json:"ServicesUsed"`
-	ApplicationsUsed string  `json:"ApplicationsUsed"`
-	InternalVersion  float64 `json:"InternalVersion"`
-	ExternalVersion  string  `json:"ExternalVersion"`
+	ServerID         types.FlexibleID `json:"ServerID"`
+	ServerName       string           `json:"ServerName"`
+	ServicesUsed     string           `json:"ServicesUsed"`
+	ApplicationsUsed string           `json:"ApplicationsUsed"`
+	InternalVersion  float64          `json:"InternalVersion"`
+	ExternalVersion  string           `json:"ExternalVersion"`
 }
 
 // NewSession creates a new authenticated session with CyberArk.

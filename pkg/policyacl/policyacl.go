@@ -10,11 +10,12 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // PolicyACL represents a policy ACL entry.
 type PolicyACL struct {
-	PolicyID       string `json:"PolicyId"`
+	PolicyID       types.FlexibleID `json:"PolicyId"`
 	UserName       string `json:"UserName"`
 	Command        string `json:"Command,omitempty"`
 	CommandGroup   bool   `json:"CommandGroup,omitempty"`

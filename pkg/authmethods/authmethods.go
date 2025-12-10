@@ -11,12 +11,13 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // AuthenticationMethod represents a vault authentication method.
 type AuthenticationMethod struct {
-	ID                       string `json:"id"`
-	DisplayName              string `json:"displayName"`
+	ID                       types.FlexibleID `json:"id"`
+	DisplayName              string           `json:"displayName"`
 	Enabled                  bool   `json:"enabled"`
 	MobileEnabled            bool   `json:"mobileEnabled"`
 	LogoffURL                string `json:"logoffUrl,omitempty"`
@@ -76,8 +77,8 @@ func GetAuthenticationMethod(ctx context.Context, sess *session.Session, methodI
 
 // AddAuthenticationMethodOptions holds options for adding an authentication method.
 type AddAuthenticationMethodOptions struct {
-	ID                       string `json:"id"`
-	DisplayName              string `json:"displayName"`
+	ID                       types.FlexibleID `json:"id"`
+	DisplayName              string           `json:"displayName"`
 	Enabled                  bool   `json:"enabled"`
 	MobileEnabled            bool   `json:"mobileEnabled,omitempty"`
 	LogoffURL                string `json:"logoffUrl,omitempty"`
@@ -172,9 +173,9 @@ func RemoveAuthenticationMethod(ctx context.Context, sess *session.Session, meth
 
 // UserAllowedAuthMethod represents an authentication method allowed for a user.
 type UserAllowedAuthMethod struct {
-	MethodID    string `json:"authMethodId"`
-	MethodName  string `json:"authMethodDisplayName,omitempty"`
-	IsEnabled   bool   `json:"isEnabled"`
+	MethodID    types.FlexibleID `json:"authMethodId"`
+	MethodName  string           `json:"authMethodDisplayName,omitempty"`
+	IsEnabled   bool             `json:"isEnabled"`
 }
 
 // ListUserAllowedAuthMethods retrieves allowed authentication methods for a user.

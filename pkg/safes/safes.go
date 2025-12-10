@@ -11,16 +11,17 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Safe represents a CyberArk safe.
 type Safe struct {
-	SafeURLId                 string   `json:"safeUrlId"`
-	SafeName                  string   `json:"safeName"`
-	SafeNumber                int      `json:"safeNumber"`
-	Description               string   `json:"description,omitempty"`
-	Location                  string   `json:"location,omitempty"`
-	Creator                   *Creator `json:"creator,omitempty"`
+	SafeURLId                 types.FlexibleID `json:"safeUrlId"`
+	SafeName                  string           `json:"safeName"`
+	SafeNumber                int              `json:"safeNumber"`
+	Description               string           `json:"description,omitempty"`
+	Location                  string           `json:"location,omitempty"`
+	Creator                   *Creator         `json:"creator,omitempty"`
 	OLACEnabled               bool     `json:"olacEnabled"`
 	ManagingCPM               string   `json:"managingCPM,omitempty"`
 	NumberOfVersionsRetention *int     `json:"numberOfVersionsRetention,omitempty"`
@@ -34,8 +35,8 @@ type Safe struct {
 
 // Creator represents the safe creator information.
 type Creator struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   types.FlexibleID `json:"id"`
+	Name string           `json:"name"`
 }
 
 // SafesResponse represents the response from listing safes.

@@ -11,12 +11,13 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // PublicSSHKey represents a user's public SSH key.
 type PublicSSHKey struct {
-	KeyID        string `json:"KeyID"`
-	PublicSSHKey string `json:"PublicSSHKey"`
+	KeyID        types.FlexibleID `json:"KeyID"`
+	PublicSSHKey string           `json:"PublicSSHKey"`
 }
 
 // PublicSSHKeysResponse represents the response from listing public SSH keys.
@@ -146,13 +147,13 @@ func GetAccountSSHKey(ctx context.Context, sess *session.Session, accountID stri
 
 // PrivateSSHKey represents a private SSH key managed by CyberArk.
 type PrivateSSHKey struct {
-	ID            string `json:"id"`
-	UserID        string `json:"userId"`
-	Format        string `json:"format,omitempty"`
-	KeyAlgorithm  string `json:"keyAlgorithm,omitempty"`
-	KeySize       int    `json:"keySize,omitempty"`
-	CreationTime  int64  `json:"creationTime,omitempty"`
-	ExpirationTime int64 `json:"expirationTime,omitempty"`
+	ID             types.FlexibleID `json:"id"`
+	UserID         types.FlexibleID `json:"userId"`
+	Format         string           `json:"format,omitempty"`
+	KeyAlgorithm   string           `json:"keyAlgorithm,omitempty"`
+	KeySize        int              `json:"keySize,omitempty"`
+	CreationTime   int64            `json:"creationTime,omitempty"`
+	ExpirationTime int64            `json:"expirationTime,omitempty"`
 }
 
 // GeneratePrivateSSHKeyOptions holds options for generating a private SSH key.
@@ -230,9 +231,9 @@ func ClearPrivateSSHKeys(ctx context.Context, sess *session.Session, userID stri
 
 // MFACachedSSHKey represents an MFA-cached SSH key.
 type MFACachedSSHKey struct {
-	ID               string `json:"id"`
-	CacheCreationTime int64 `json:"cacheCreationTime"`
-	ExpirationTime   int64  `json:"expirationTime"`
+	ID                types.FlexibleID `json:"id"`
+	CacheCreationTime int64            `json:"cacheCreationTime"`
+	ExpirationTime    int64            `json:"expirationTime"`
 }
 
 // ListMFACachedSSHKeys retrieves MFA-cached SSH keys for a user.

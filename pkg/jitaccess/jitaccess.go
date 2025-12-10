@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // JITAccessRequest represents a JIT access request.
@@ -17,16 +18,16 @@ type JITAccessRequest struct {
 	AccountID string `json:"-"` // Used in URL
 	Reason    string `json:"reason,omitempty"`
 	TicketingSystemName string `json:"ticketingSystemName,omitempty"`
-	TicketID  string `json:"ticketId,omitempty"`
+	TicketID  types.FlexibleID `json:"ticketId,omitempty"`
 }
 
 // JITAccess represents an active JIT access session.
 type JITAccess struct {
-	AccountID     string `json:"accountId"`
-	Status        string `json:"status"`
-	RequestTime   int64  `json:"requestTime"`
-	ExpirationTime int64 `json:"expirationTime,omitempty"`
-	Reason        string `json:"reason,omitempty"`
+	AccountID      types.FlexibleID `json:"accountId"`
+	Status         string           `json:"status"`
+	RequestTime    int64            `json:"requestTime"`
+	ExpirationTime int64            `json:"expirationTime,omitempty"`
+	Reason         string           `json:"reason,omitempty"`
 }
 
 // RequestJITAccess requests Just-In-Time access to an account.
@@ -60,7 +61,7 @@ func RequestJITAccess(ctx context.Context, sess *session.Session, accountID stri
 	if err := json.Unmarshal(resp.Body, &result); err != nil {
 		// JIT access might return empty response on success
 		result = JITAccess{
-			AccountID: accountID,
+			AccountID: types.FlexibleID(accountID),
 			Status:    "Granted",
 		}
 	}

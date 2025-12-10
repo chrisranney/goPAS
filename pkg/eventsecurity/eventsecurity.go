@@ -11,16 +11,17 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // PTAEvent represents a PTA security event.
 type PTAEvent struct {
-	ID               string                 `json:"id"`
+	ID               types.FlexibleID       `json:"id"`
 	Type             string                 `json:"type"`
 	Score            float64                `json:"score"`
 	EventTime        int64                  `json:"eventTime"`
 	MachineAddress   string                 `json:"machineAddress,omitempty"`
-	UserID           string                 `json:"userId,omitempty"`
+	UserID           types.FlexibleID       `json:"userId,omitempty"`
 	UserName         string                 `json:"userName,omitempty"`
 	CloudData        *CloudData             `json:"cloudData,omitempty"`
 	Status           string                 `json:"status,omitempty"`
@@ -37,10 +38,10 @@ type CloudData struct {
 
 // AffectedAccount represents an account affected by a PTA event.
 type AffectedAccount struct {
-	AccountID   string `json:"accountId"`
-	AccountName string `json:"accountName,omitempty"`
-	SafeName    string `json:"safeName,omitempty"`
-	PlatformID  string `json:"platformId,omitempty"`
+	AccountID   types.FlexibleID `json:"accountId"`
+	AccountName string           `json:"accountName,omitempty"`
+	SafeName    string           `json:"safeName,omitempty"`
+	PlatformID  types.FlexibleID `json:"platformId,omitempty"`
 }
 
 // PTAEventsResponse represents the response from listing PTA events.
@@ -152,12 +153,12 @@ func SetEventStatus(ctx context.Context, sess *session.Session, eventID string, 
 
 // PTARule represents a PTA security rule.
 type PTARule struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Type        string `json:"type"`
-	Active      bool   `json:"active"`
-	Score       int    `json:"score,omitempty"`
+	ID          types.FlexibleID `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description,omitempty"`
+	Type        string           `json:"type"`
+	Active      bool             `json:"active"`
+	Score       int              `json:"score,omitempty"`
 }
 
 // ListRules retrieves PTA security rules.
@@ -207,10 +208,10 @@ func SetRule(ctx context.Context, sess *session.Session, ruleID string, opts Set
 
 // PTARemediation represents a PTA remediation action.
 type PTARemediation struct {
-	ID          string `json:"id"`
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
+	ID          types.FlexibleID `json:"id"`
+	Type        string           `json:"type"`
+	Name        string           `json:"name"`
+	Description string           `json:"description,omitempty"`
 }
 
 // ListRemediations retrieves PTA remediation options.
@@ -235,9 +236,9 @@ func ListRemediations(ctx context.Context, sess *session.Session) ([]PTARemediat
 
 // PrivilegedUser represents a privileged user in PTA.
 type PrivilegedUser struct {
-	ID       string `json:"id"`
-	UserName string `json:"userName"`
-	Source   string `json:"source,omitempty"`
+	ID       types.FlexibleID `json:"id"`
+	UserName string           `json:"userName"`
+	Source   string           `json:"source,omitempty"`
 }
 
 // GetPrivilegedUsers retrieves PTA privileged users.
