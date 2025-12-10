@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Client represents a CCP client for retrieving credentials.
@@ -99,7 +101,7 @@ type CredentialResponse struct {
 	Properties map[string]string `json:"Properties,omitempty"`
 
 	// PasswordChangeInProcess indicates if password is being changed
-	PasswordChangeInProcess bool `json:"PasswordChangeInProcess"`
+	PasswordChangeInProcess types.FlexibleBool `json:"PasswordChangeInProcess"`
 
 	// CreationMethod indicates how the account was created
 	CreationMethod string `json:"CreationMethod,omitempty"`
