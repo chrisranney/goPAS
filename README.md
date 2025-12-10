@@ -64,7 +64,7 @@ func main() {
 ## Features
 
 - **Full API Coverage** - Supports all major CyberArk operations: accounts, safes, users, platforms, requests, and more
-- **Multiple Auth Methods** - CyberArk, LDAP, RADIUS, SAML, and Windows integrated authentication
+- **Multiple Auth Methods** - CyberArk, LDAP, RADIUS, SAML, Windows, and CCP (Central Credential Provider)
 - **Type-Safe** - Strongly typed request/response structures with full IDE support
 - **Context Support** - First-class `context.Context` support for cancellation and timeouts
 - **CyberArk v14.0 Compatible** - Tested against CyberArk versions up to v14.0
@@ -82,6 +82,7 @@ func main() {
 | `pkg/requests` | Access request workflows |
 | `pkg/applications` | Application management |
 | `pkg/authentication` | Session management |
+| `pkg/ccp` | Central Credential Provider (CCP) credential retrieval |
 | `pkg/monitoring` | PSM session monitoring |
 | `pkg/connections` | PSM connections |
 | `pkg/systemhealth` | Component health checks |
@@ -131,6 +132,72 @@ sess, err := gopas.NewSession(ctx, gopas.SessionOptions{
         Password: "password",
     },
     AuthMethod: gopas.AuthMethodRADIUS,
+})
+```
+
+### CCP (Central Credential Provider)
+
+CCP allows applications to retrieve credentials from CyberArk without storing passwords. This is ideal for automated systems and application-to-vault communication.
+
+```go
+import "github.com/chrisranney/gopas/pkg/ccp"
+
+// Create a CCP client
+ccpClient, err := ccp.NewClient(ccp.ClientConfig{
+    BaseURL:       "https://cyberark.example.com",
+    SkipTLSVerify: false,
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// Retrieve credentials from CCP
+username, password, err := ccpClient.GetLoginCredentials(ctx, ccp.CredentialRequest{
+    AppID: "MyApplication",
+    Safe:  "AdminCredentials",
+    // Optional filters
+    UserName: "admin",
+    Address:  "server.example.com",
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// Use retrieved credentials to create a session
+sess, err := gopas.NewSession(ctx, gopas.SessionOptions{
+    BaseURL: "https://cyberark.example.com",
+    Credentials: gopas.Credentials{
+        Username: username,
+        Password: password,
+    },
+})
+```
+
+#### CCP with Mutual TLS
+
+For enhanced security, CCP supports mutual TLS authentication:
+
+```go
+ccpClient, err := ccp.NewClient(ccp.ClientConfig{
+    BaseURL:    "https://cyberark.example.com",
+    ClientCert: "/path/to/client.crt",
+    ClientKey:  "/path/to/client.key",
+})
+```
+
+#### CCP Credential Request Options
+
+```go
+cred, err := ccpClient.GetCredential(ctx, ccp.CredentialRequest{
+    AppID:       "MyApp",           // Required: Application ID registered in CyberArk
+    Safe:        "MySafe",          // Required: Safe containing the credential
+    Object:      "AccountName",     // Optional: Account object name
+    Folder:      "Root\\Subfolder", // Optional: Folder path within safe
+    UserName:    "admin",           // Optional: Filter by username
+    Address:     "server.local",    // Optional: Filter by address
+    Query:       "admin",           // Optional: Free-text search
+    QueryFormat: "Exact",           // Optional: "Exact" or "Regexp"
+    Reason:      "Automated login", // Optional: Audit reason
 })
 ```
 
@@ -305,6 +372,7 @@ The SDK includes comprehensive tests for all major packages:
 | `internal/session` | 100.0% | Session management |
 | `internal/helpers` | 98.5% | Utility functions and version parsing |
 | `internal/client` | 97.3% | Core HTTP client and error handling |
+| `pkg/ccp` | 85.0% | CCP credential retrieval |
 | `pkg/safes` | 80.0% | Safe operations |
 | `pkg/systemhealth` | 79.3% | Health checks |
 | `pkg/connections` | 79.2% | PSM connections |
