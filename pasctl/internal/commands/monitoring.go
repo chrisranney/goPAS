@@ -147,7 +147,7 @@ func (c *PSMCommand) sessions(execCtx *ExecutionContext, args []string) error {
 			startTime := time.Unix(s.Start, 0).Format("2006-01-02 15:04")
 			duration := formatSeconds(s.Duration)
 			table.AddRow(
-				truncate(s.SessionID, 20),
+				truncate(s.SessionID.String(), 20),
 				s.User,
 				s.RemoteMachine,
 				s.Protocol,
@@ -197,7 +197,7 @@ func (c *PSMCommand) live(execCtx *ExecutionContext, args []string) error {
 		for _, s := range result.Recordings {
 			startTime := time.Unix(s.Start, 0).Format("2006-01-02 15:04")
 			table.AddRow(
-				truncate(s.SessionID, 20),
+				truncate(s.SessionID.String(), 20),
 				s.User,
 				s.RemoteMachine,
 				s.Protocol,

@@ -142,7 +142,7 @@ func (c *AccountsCommand) list(execCtx *ExecutionContext, args []string) error {
 		// Create custom table for better display
 		table := output.NewTable("ID", "USERNAME", "ADDRESS", "PLATFORM", "SAFE")
 		for _, acc := range result.Value {
-			table.AddRow(acc.ID, acc.UserName, acc.Address, acc.PlatformID, acc.SafeName)
+			table.AddRow(acc.ID.String(), acc.UserName, acc.Address, acc.PlatformID.String(), acc.SafeName)
 		}
 		table.Render()
 		fmt.Printf("\nShowing %d of %d accounts\n", len(result.Value), result.Count)
