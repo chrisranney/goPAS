@@ -11,57 +11,15 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
-
-// FlexibleID is a type that can unmarshal from either a JSON string or number.
-// CyberArk API documentation shows memberId as a UUID string, but some versions
-// return it as an integer. This type handles both cases transparently.
-type FlexibleID string
-
-// UnmarshalJSON implements json.Unmarshaler for FlexibleID.
-// It accepts both JSON strings and numbers, converting numbers to strings.
-func (f *FlexibleID) UnmarshalJSON(data []byte) error {
-	// Try to unmarshal as string first
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		*f = FlexibleID(s)
-		return nil
-	}
-
-	// Try to unmarshal as number (integer)
-	var n int64
-	if err := json.Unmarshal(data, &n); err == nil {
-		*f = FlexibleID(strconv.FormatInt(n, 10))
-		return nil
-	}
-
-	// Try to unmarshal as float (for large numbers that might come as floats)
-	var fn float64
-	if err := json.Unmarshal(data, &fn); err == nil {
-		*f = FlexibleID(strconv.FormatFloat(fn, 'f', -1, 64))
-		return nil
-	}
-
-	return fmt.Errorf("FlexibleID: cannot unmarshal %s", string(data))
-}
-
-// MarshalJSON implements json.Marshaler for FlexibleID.
-// It always marshals as a string.
-func (f FlexibleID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(string(f))
-}
-
-// String returns the string representation of the FlexibleID.
-func (f FlexibleID) String() string {
-	return string(f)
-}
 
 // SafeMember represents a safe member.
 type SafeMember struct {
-	SafeURLID                 string       `json:"safeUrlId,omitempty"`
-	SafeName                  string       `json:"safeName,omitempty"`
-	SafeNumber                int          `json:"safeNumber,omitempty"`
-	MemberID                  FlexibleID   `json:"memberId,omitempty"`
+	SafeURLID                 types.FlexibleID `json:"safeUrlId,omitempty"`
+	SafeName                  string           `json:"safeName,omitempty"`
+	SafeNumber                int              `json:"safeNumber,omitempty"`
+	MemberID                  types.FlexibleID `json:"memberId,omitempty"`
 	MemberName                string       `json:"memberName"`
 	MemberType                string       `json:"memberType,omitempty"`
 	MembershipExpirationDate  int64        `json:"membershipExpirationDate,omitempty"`

@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // AccountImportSource represents the source of the account import.
@@ -27,7 +28,7 @@ type ImportAccount struct {
 	UserName                  string                 `json:"userName"`
 	Address                   string                 `json:"address"`
 	SafeName                  string                 `json:"safeName"`
-	PlatformID                string                 `json:"platformId"`
+	PlatformID                types.FlexibleID       `json:"platformId"`
 	Secret                    string                 `json:"secret,omitempty"`
 	SecretType                string                 `json:"secretType,omitempty"`
 	Name                      string                 `json:"name,omitempty"`
@@ -56,17 +57,17 @@ type StartImportJobOptions struct {
 
 // ImportJob represents an account import job.
 type ImportJob struct {
-	ID         string `json:"id"`
-	Source     string `json:"source"`
-	Status     string `json:"status"`
-	CreatedAt  int64  `json:"createdAt"`
-	StartedAt  int64  `json:"startedAt,omitempty"`
-	FinishedAt int64  `json:"finishedAt,omitempty"`
+	ID         types.FlexibleID `json:"id"`
+	Source     string           `json:"source"`
+	Status     string           `json:"status"`
+	CreatedAt  int64            `json:"createdAt"`
+	StartedAt  int64            `json:"startedAt,omitempty"`
+	FinishedAt int64            `json:"finishedAt,omitempty"`
 }
 
 // ImportJobResult represents the result of an import job.
 type ImportJobResult struct {
-	ID               string           `json:"id"`
+	ID               types.FlexibleID `json:"id"`
 	Source           string           `json:"source"`
 	Status           string           `json:"status"`
 	TotalAccounts    int              `json:"totalAccounts"`
@@ -89,9 +90,9 @@ type FailedAccount struct {
 
 // SuccessAccount represents an account that was successfully imported.
 type SuccessAccount struct {
-	Index     int    `json:"index"`
-	AccountID string `json:"accountId"`
-	AccountName string `json:"accountName"`
+	Index       int              `json:"index"`
+	AccountID   types.FlexibleID `json:"accountId"`
+	AccountName string           `json:"accountName"`
 }
 
 // StartImportJob starts a bulk account import job.
@@ -177,17 +178,17 @@ func NewAccountObject(
 		UserName:   userName,
 		Address:    address,
 		SafeName:   safeName,
-		PlatformID: platformID,
+		PlatformID: types.FlexibleID(platformID),
 		Secret:     secret,
 	}
 }
 
 // PendingAccount represents a pending account for review.
 type PendingAccount struct {
-	ID                        string                 `json:"id"`
+	ID                        types.FlexibleID       `json:"id"`
 	UserName                  string                 `json:"userName"`
 	Address                   string                 `json:"address"`
-	PlatformID                string                 `json:"platformId"`
+	PlatformID                types.FlexibleID       `json:"platformId"`
 	SafeName                  string                 `json:"safeName"`
 	LastPasswordSetDate       int64                  `json:"lastPasswordSetDate,omitempty"`
 	PlatformAccountProperties map[string]interface{} `json:"platformAccountProperties,omitempty"`

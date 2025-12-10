@@ -10,12 +10,13 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Report represents a CyberArk report definition.
 type Report struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
+	ID          types.FlexibleID `json:"id"`
+	Name        string           `json:"name"`
 	Description string `json:"description,omitempty"`
 	Type        string `json:"type"`
 	Category    string `json:"category,omitempty"`
@@ -80,11 +81,11 @@ type ExportReportOptions struct {
 
 // ReportData represents exported report data.
 type ReportData struct {
-	ReportID    string `json:"reportId"`
-	ReportName  string `json:"reportName"`
-	Format      string `json:"format"`
-	Data        []byte `json:"data"`
-	ContentType string `json:"contentType"`
+	ReportID    types.FlexibleID `json:"reportId"`
+	ReportName  string           `json:"reportName"`
+	Format      string           `json:"format"`
+	Data        []byte           `json:"data"`
+	ContentType string           `json:"contentType"`
 }
 
 // ExportReport exports a report in the specified format.
@@ -121,7 +122,7 @@ func ExportReport(ctx context.Context, sess *session.Session, opts ExportReportO
 	}
 
 	return &ReportData{
-		ReportID:    opts.ReportID,
+		ReportID:    types.FlexibleID(opts.ReportID),
 		Format:      opts.Format,
 		Data:        resp.Body,
 		ContentType: "application/octet-stream", // Will be set by response headers in real implementation
@@ -130,9 +131,9 @@ func ExportReport(ctx context.Context, sess *session.Session, opts ExportReportO
 
 // ReportSchedule represents a scheduled report.
 type ReportSchedule struct {
-	ID              string   `json:"id"`
-	ReportID        string   `json:"reportId"`
-	ReportName      string   `json:"reportName,omitempty"`
+	ID              types.FlexibleID `json:"id"`
+	ReportID        types.FlexibleID `json:"reportId"`
+	ReportName      string           `json:"reportName,omitempty"`
 	Frequency       string   `json:"frequency"` // Daily, Weekly, Monthly
 	StartTime       string   `json:"startTime,omitempty"`
 	DayOfWeek       int      `json:"dayOfWeek,omitempty"` // 0-6 for weekly

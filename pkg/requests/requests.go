@@ -11,11 +11,12 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Request represents an access request.
 type Request struct {
-	RequestID                string                 `json:"RequestID"`
+	RequestID                types.FlexibleID       `json:"RequestID"`
 	SafeName                 string                 `json:"SafeName"`
 	RequestorUserName        string                 `json:"RequestorUserName"`
 	RequestorReason          string                 `json:"RequestorReason,omitempty"`
@@ -40,11 +41,11 @@ type Request struct {
 
 // AccountDetails holds account information for a request.
 type AccountDetails struct {
-	AccountID   string `json:"AccountID"`
-	AccountName string `json:"AccountName,omitempty"`
-	SafeName    string `json:"SafeName,omitempty"`
-	PlatformID  string `json:"PlatformID,omitempty"`
-	Address     string `json:"Address,omitempty"`
+	AccountID   types.FlexibleID `json:"AccountID"`
+	AccountName string           `json:"AccountName,omitempty"`
+	SafeName    string           `json:"SafeName,omitempty"`
+	PlatformID  types.FlexibleID `json:"PlatformID,omitempty"`
+	Address     string           `json:"Address,omitempty"`
 }
 
 // RequestsResponse represents the response from listing requests.

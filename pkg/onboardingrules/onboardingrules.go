@@ -10,26 +10,27 @@ import (
 	"net/url"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // OnboardingRule represents an automatic account onboarding rule.
 type OnboardingRule struct {
-	RuleID                int    `json:"RuleId,omitempty"`
-	RuleName              string `json:"RuleName"`
-	RuleDescription       string `json:"RuleDescription,omitempty"`
-	TargetPlatformID      string `json:"TargetPlatformId"`
-	TargetSafeName        string `json:"TargetSafeName"`
-	TargetDeviceType      string `json:"TargetDeviceType,omitempty"`
-	IsAdminIDFilter       bool   `json:"IsAdminIDFilter,omitempty"`
-	MachineTypeFilter     string `json:"MachineTypeFilter,omitempty"`
-	SystemTypeFilter      string `json:"SystemTypeFilter,omitempty"`
-	UserNameFilter        string `json:"UserNameFilter,omitempty"`
-	UserNameMethod        string `json:"UserNameMethod,omitempty"`
-	AddressFilter         string `json:"AddressFilter,omitempty"`
-	AddressMethod         string `json:"AddressMethod,omitempty"`
-	AccountCategoryFilter string `json:"AccountCategoryFilter,omitempty"`
-	RulePrecedence        int    `json:"RulePrecedence,omitempty"`
-	ReconcileAccountID    string `json:"ReconcileAccountId,omitempty"`
+	RuleID                int              `json:"RuleId,omitempty"`
+	RuleName              string           `json:"RuleName"`
+	RuleDescription       string           `json:"RuleDescription,omitempty"`
+	TargetPlatformID      types.FlexibleID `json:"TargetPlatformId"`
+	TargetSafeName        string           `json:"TargetSafeName"`
+	TargetDeviceType      string           `json:"TargetDeviceType,omitempty"`
+	IsAdminIDFilter       bool             `json:"IsAdminIDFilter,omitempty"`
+	MachineTypeFilter     string           `json:"MachineTypeFilter,omitempty"`
+	SystemTypeFilter      string           `json:"SystemTypeFilter,omitempty"`
+	UserNameFilter        string           `json:"UserNameFilter,omitempty"`
+	UserNameMethod        string           `json:"UserNameMethod,omitempty"`
+	AddressFilter         string           `json:"AddressFilter,omitempty"`
+	AddressMethod         string           `json:"AddressMethod,omitempty"`
+	AccountCategoryFilter string           `json:"AccountCategoryFilter,omitempty"`
+	RulePrecedence        int              `json:"RulePrecedence,omitempty"`
+	ReconcileAccountID    types.FlexibleID `json:"ReconcileAccountId,omitempty"`
 }
 
 // OnboardingRulesResponse represents the response from listing onboarding rules.
@@ -78,21 +79,21 @@ func Get(ctx context.Context, sess *session.Session, ruleID int) (*OnboardingRul
 
 // CreateOptions holds options for creating an onboarding rule.
 type CreateOptions struct {
-	RuleName              string `json:"RuleName"`
-	RuleDescription       string `json:"RuleDescription,omitempty"`
-	TargetPlatformID      string `json:"TargetPlatformId"`
-	TargetSafeName        string `json:"TargetSafeName"`
-	TargetDeviceType      string `json:"TargetDeviceType,omitempty"`
-	IsAdminIDFilter       bool   `json:"IsAdminIDFilter,omitempty"`
-	MachineTypeFilter     string `json:"MachineTypeFilter,omitempty"`
-	SystemTypeFilter      string `json:"SystemTypeFilter,omitempty"`
-	UserNameFilter        string `json:"UserNameFilter,omitempty"`
-	UserNameMethod        string `json:"UserNameMethod,omitempty"`
-	AddressFilter         string `json:"AddressFilter,omitempty"`
-	AddressMethod         string `json:"AddressMethod,omitempty"`
-	AccountCategoryFilter string `json:"AccountCategoryFilter,omitempty"`
-	RulePrecedence        int    `json:"RulePrecedence,omitempty"`
-	ReconcileAccountID    string `json:"ReconcileAccountId,omitempty"`
+	RuleName              string           `json:"RuleName"`
+	RuleDescription       string           `json:"RuleDescription,omitempty"`
+	TargetPlatformID      types.FlexibleID `json:"TargetPlatformId"`
+	TargetSafeName        string           `json:"TargetSafeName"`
+	TargetDeviceType      string           `json:"TargetDeviceType,omitempty"`
+	IsAdminIDFilter       bool             `json:"IsAdminIDFilter,omitempty"`
+	MachineTypeFilter     string           `json:"MachineTypeFilter,omitempty"`
+	SystemTypeFilter      string           `json:"SystemTypeFilter,omitempty"`
+	UserNameFilter        string           `json:"UserNameFilter,omitempty"`
+	UserNameMethod        string           `json:"UserNameMethod,omitempty"`
+	AddressFilter         string           `json:"AddressFilter,omitempty"`
+	AddressMethod         string           `json:"AddressMethod,omitempty"`
+	AccountCategoryFilter string           `json:"AccountCategoryFilter,omitempty"`
+	RulePrecedence        int              `json:"RulePrecedence,omitempty"`
+	ReconcileAccountID    types.FlexibleID `json:"ReconcileAccountId,omitempty"`
 }
 
 // Create creates a new onboarding rule.
@@ -127,21 +128,21 @@ func Create(ctx context.Context, sess *session.Session, opts CreateOptions) (*On
 
 // UpdateOptions holds options for updating an onboarding rule.
 type UpdateOptions struct {
-	RuleName              string `json:"RuleName,omitempty"`
-	RuleDescription       string `json:"RuleDescription,omitempty"`
-	TargetPlatformID      string `json:"TargetPlatformId,omitempty"`
-	TargetSafeName        string `json:"TargetSafeName,omitempty"`
-	TargetDeviceType      string `json:"TargetDeviceType,omitempty"`
-	IsAdminIDFilter       *bool  `json:"IsAdminIDFilter,omitempty"`
-	MachineTypeFilter     string `json:"MachineTypeFilter,omitempty"`
-	SystemTypeFilter      string `json:"SystemTypeFilter,omitempty"`
-	UserNameFilter        string `json:"UserNameFilter,omitempty"`
-	UserNameMethod        string `json:"UserNameMethod,omitempty"`
-	AddressFilter         string `json:"AddressFilter,omitempty"`
-	AddressMethod         string `json:"AddressMethod,omitempty"`
-	AccountCategoryFilter string `json:"AccountCategoryFilter,omitempty"`
-	RulePrecedence        *int   `json:"RulePrecedence,omitempty"`
-	ReconcileAccountID    string `json:"ReconcileAccountId,omitempty"`
+	RuleName              string           `json:"RuleName,omitempty"`
+	RuleDescription       string           `json:"RuleDescription,omitempty"`
+	TargetPlatformID      types.FlexibleID `json:"TargetPlatformId,omitempty"`
+	TargetSafeName        string           `json:"TargetSafeName,omitempty"`
+	TargetDeviceType      string           `json:"TargetDeviceType,omitempty"`
+	IsAdminIDFilter       *bool            `json:"IsAdminIDFilter,omitempty"`
+	MachineTypeFilter     string           `json:"MachineTypeFilter,omitempty"`
+	SystemTypeFilter      string           `json:"SystemTypeFilter,omitempty"`
+	UserNameFilter        string           `json:"UserNameFilter,omitempty"`
+	UserNameMethod        string           `json:"UserNameMethod,omitempty"`
+	AddressFilter         string           `json:"AddressFilter,omitempty"`
+	AddressMethod         string           `json:"AddressMethod,omitempty"`
+	AccountCategoryFilter string           `json:"AccountCategoryFilter,omitempty"`
+	RulePrecedence        *int             `json:"RulePrecedence,omitempty"`
+	ReconcileAccountID    types.FlexibleID `json:"ReconcileAccountId,omitempty"`
 }
 
 // Update updates an onboarding rule.
@@ -181,7 +182,7 @@ func Delete(ctx context.Context, sess *session.Session, ruleID int) error {
 
 // DiscoveredAccount represents a discovered account.
 type DiscoveredAccount struct {
-	ID                         string                 `json:"id,omitempty"`
+	ID                         types.FlexibleID       `json:"id,omitempty"`
 	UserName                   string                 `json:"userName"`
 	Address                    string                 `json:"address"`
 	DiscoveryDateTime          int64                  `json:"discoveryDateTime,omitempty"`
@@ -363,9 +364,9 @@ func ClearDiscoveredAccounts(ctx context.Context, sess *session.Session, opts Cl
 
 // PublishDiscoveredAccountOptions holds options for publishing (onboarding) a discovered account.
 type PublishDiscoveredAccountOptions struct {
-	AccountID        string `json:"-"` // Used in URL
-	SafeName         string `json:"safeName"`
-	PlatformID       string `json:"platformId,omitempty"`
+	AccountID        string           `json:"-"` // Used in URL
+	SafeName         string           `json:"safeName"`
+	PlatformID       types.FlexibleID `json:"platformId,omitempty"`
 	Secret           string `json:"secret,omitempty"`
 	SecretType       string `json:"secretType,omitempty"`
 	AutomaticManagement *bool  `json:"automaticManagement,omitempty"`
@@ -374,10 +375,10 @@ type PublishDiscoveredAccountOptions struct {
 
 // PublishedAccount represents the result of publishing a discovered account.
 type PublishedAccount struct {
-	ID         string `json:"id"`
-	Name       string `json:"name,omitempty"`
-	SafeName   string `json:"safeName"`
-	PlatformID string `json:"platformId"`
+	ID         types.FlexibleID `json:"id"`
+	Name       string           `json:"name,omitempty"`
+	SafeName   string           `json:"safeName"`
+	PlatformID types.FlexibleID `json:"platformId"`
 }
 
 // PublishDiscoveredAccount onboards a discovered account to CyberArk vault.

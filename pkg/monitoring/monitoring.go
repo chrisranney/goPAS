@@ -11,16 +11,17 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // PSMSession represents a PSM session.
 type PSMSession struct {
-	SessionID           string            `json:"SessionID"`
-	SessionGuid         string            `json:"SessionGuid,omitempty"`
+	SessionID           types.FlexibleID  `json:"SessionID"`
+	SessionGuid         types.FlexibleID  `json:"SessionGuid,omitempty"`
 	SafeName            string            `json:"SafeName,omitempty"`
-	AccountID           string            `json:"AccountID,omitempty"`
+	AccountID           types.FlexibleID  `json:"AccountID,omitempty"`
 	AccountName         string            `json:"AccountName,omitempty"`
-	AccountPlatformID   string            `json:"AccountPlatformID,omitempty"`
+	AccountPlatformID   types.FlexibleID  `json:"AccountPlatformID,omitempty"`
 	User                string            `json:"User"`
 	RemoteMachine       string            `json:"RemoteMachine,omitempty"`
 	Protocol            string            `json:"Protocol,omitempty"`
@@ -30,7 +31,7 @@ type PSMSession struct {
 	Start               int64             `json:"Start"`
 	End                 int64             `json:"End,omitempty"`
 	Duration            int64             `json:"Duration,omitempty"`
-	PSMServerID         string            `json:"PSMServerID,omitempty"`
+	PSMServerID         types.FlexibleID  `json:"PSMServerID,omitempty"`
 	FromIP              string            `json:"FromIP,omitempty"`
 	RiskScore           float64           `json:"RiskScore,omitempty"`
 	IsLive              bool              `json:"IsLive"`

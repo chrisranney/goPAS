@@ -11,12 +11,13 @@ import (
 	"strconv"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Platform represents a CyberArk platform.
 type Platform struct {
-	ID                          string             `json:"id,omitempty"`
-	PlatformID                  string             `json:"platformId,omitempty"`
+	ID                          types.FlexibleID   `json:"id,omitempty"`
+	PlatformID                  types.FlexibleID   `json:"platformId,omitempty"`
 	Name                        string             `json:"name"`
 	Active                      bool               `json:"active"`
 	Description                 string             `json:"description,omitempty"`

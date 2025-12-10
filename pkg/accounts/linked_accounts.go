@@ -8,13 +8,14 @@ import (
 	"fmt"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // LinkedAccount represents a linked account.
 type LinkedAccount struct {
-	ID         string `json:"ID"`
-	Name       string `json:"Name"`
-	SafeName   string `json:"SafeName"`
+	ID         types.FlexibleID `json:"ID"`
+	Name       string           `json:"Name"`
+	SafeName   string           `json:"SafeName"`
 	ExtraPass1 string `json:"ExtraPass1,omitempty"`
 	ExtraPass2 string `json:"ExtraPass2,omitempty"`
 	ExtraPass3 string `json:"ExtraPass3,omitempty"`

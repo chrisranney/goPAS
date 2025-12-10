@@ -12,15 +12,16 @@ import (
 	"time"
 
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // Account represents a CyberArk privileged account.
 type Account struct {
-	ID                        string                 `json:"id"`
+	ID                        types.FlexibleID       `json:"id"`
 	Name                      string                 `json:"name"`
 	Address                   string                 `json:"address"`
 	UserName                  string                 `json:"userName"`
-	PlatformID                string                 `json:"platformId"`
+	PlatformID                types.FlexibleID       `json:"platformId"`
 	SafeName                  string                 `json:"safeName"`
 	SecretType                string                 `json:"secretType"`
 	Secret                    string                 `json:"secret,omitempty"`

@@ -10,6 +10,7 @@ import (
 
 	"github.com/chrisranney/gopas/internal/client"
 	"github.com/chrisranney/gopas/internal/session"
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 // createTestSession creates a test session with a mock server
@@ -483,10 +484,10 @@ func TestPermissions_Struct(t *testing.T) {
 
 func TestSafeMember_Struct(t *testing.T) {
 	member := SafeMember{
-		SafeURLID:                 "TestSafe",
+		SafeURLID:                 types.FlexibleID("TestSafe"),
 		SafeName:                  "TestSafe",
 		SafeNumber:                1,
-		MemberID:                  "member-123",
+		MemberID:                  types.FlexibleID("member-123"),
 		MemberName:                "admin",
 		MemberType:                "User",
 		MembershipExpirationDate:  1705315800,
@@ -551,7 +552,7 @@ func TestFlexibleID_UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var f FlexibleID
+			var f types.FlexibleID
 			err := json.Unmarshal([]byte(tt.jsonData), &f)
 			if tt.wantErr {
 				if err == nil {
@@ -571,7 +572,7 @@ func TestFlexibleID_UnmarshalJSON(t *testing.T) {
 }
 
 func TestFlexibleID_MarshalJSON(t *testing.T) {
-	f := FlexibleID("12345")
+	f := types.FlexibleID("12345")
 	data, err := json.Marshal(f)
 	if err != nil {
 		t.Errorf("MarshalJSON() unexpected error: %v", err)
@@ -584,7 +585,7 @@ func TestFlexibleID_MarshalJSON(t *testing.T) {
 }
 
 func TestFlexibleID_String(t *testing.T) {
-	f := FlexibleID("test-id")
+	f := types.FlexibleID("test-id")
 	if f.String() != "test-id" {
 		t.Errorf("String() = %v, want test-id", f.String())
 	}
