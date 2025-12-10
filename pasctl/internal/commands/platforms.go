@@ -140,9 +140,9 @@ func (c *PlatformsCommand) list(execCtx *ExecutionContext, args []string) error 
 	if execCtx.Formatter.GetFormat() == output.FormatTable {
 		table := output.NewTable("ID", "NAME", "TYPE", "SYSTEM", "ACTIVE")
 		for _, p := range result.Platforms {
-			id := p.PlatformID
+			id := p.PlatformID.String()
 			if id == "" {
-				id = p.ID
+				id = p.ID.String()
 			}
 			table.AddRow(
 				id,
