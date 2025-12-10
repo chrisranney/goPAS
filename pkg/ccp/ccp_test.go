@@ -19,6 +19,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/chrisranney/gopas/pkg/types"
 )
 
 func TestNewClient(t *testing.T) {
@@ -249,7 +251,7 @@ func TestGetCredential(t *testing.T) {
 			serverResponse: CredentialResponse{
 				Content:                 "oldpassword",
 				UserName:                "admin",
-				PasswordChangeInProcess: true,
+				PasswordChangeInProcess: types.FlexibleBool(true),
 			},
 			serverStatus: http.StatusOK,
 			wantErr:      false,
@@ -605,7 +607,7 @@ func TestCredentialResponse_Struct(t *testing.T) {
 		Name:                    "AdminAccount",
 		PolicyID:                "UnixSSH",
 		DeviceType:              "Operating System",
-		PasswordChangeInProcess: true,
+		PasswordChangeInProcess: types.FlexibleBool(true),
 		CreationMethod:          "AutoDetected",
 		Properties: map[string]string{
 			"LogonDomain": "CORP",
@@ -847,6 +849,77 @@ func TestGetCredential_MalformedErrorResponse(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "status 400") {
 		t.Errorf("Error should contain status code, got: %v", err)
+	}
+}
+
+// TestGetCredential_PasswordChangeInProcessAsString tests that PasswordChangeInProcess
+// can be parsed when the API returns it as a string ("true"/"false") instead of a boolean.
+// This is a known behavior of some CyberArk CCP API versions.
+func TestGetCredential_PasswordChangeInProcessAsString(t *testing.T) {
+	tests := []struct {
+		name         string
+		jsonResponse string
+		wantValue    bool
+	}{
+		{
+			name:         "string true",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": "true"}`,
+			wantValue:    true,
+		},
+		{
+			name:         "string false",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": "false"}`,
+			wantValue:    false,
+		},
+		{
+			name:         "boolean true",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": true}`,
+			wantValue:    true,
+		},
+		{
+			name:         "boolean false",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": false}`,
+			wantValue:    false,
+		},
+		{
+			name:         "string True titlecase",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": "True"}`,
+			wantValue:    true,
+		},
+		{
+			name:         "string False titlecase",
+			jsonResponse: `{"Content": "password", "UserName": "admin", "PasswordChangeInProcess": "False"}`,
+			wantValue:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(tt.jsonResponse))
+			})
+			server := httptest.NewServer(handler)
+			defer server.Close()
+
+			client, err := NewClient(ClientConfig{BaseURL: server.URL})
+			if err != nil {
+				t.Fatalf("Failed to create client: %v", err)
+			}
+
+			result, err := client.GetCredential(context.Background(), CredentialRequest{
+				AppID: "TestApp",
+				Safe:  "TestSafe",
+			})
+			if err != nil {
+				t.Fatalf("GetCredential() unexpected error: %v", err)
+			}
+
+			if result.PasswordChangeInProcess.Bool() != tt.wantValue {
+				t.Errorf("PasswordChangeInProcess = %v, want %v", result.PasswordChangeInProcess, tt.wantValue)
+			}
+		})
 	}
 }
 

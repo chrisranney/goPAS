@@ -49,3 +49,47 @@ func (f FlexibleID) MarshalJSON() ([]byte, error) {
 func (f FlexibleID) String() string {
 	return string(f)
 }
+
+// FlexibleBool is a type that can unmarshal from either a JSON boolean or string.
+// CyberArk API sometimes returns boolean fields as strings ("true"/"false")
+// instead of actual JSON booleans. This type handles both cases transparently.
+type FlexibleBool bool
+
+// UnmarshalJSON implements json.Unmarshaler for FlexibleBool.
+// It accepts both JSON booleans and strings ("true"/"false").
+func (f *FlexibleBool) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as boolean first
+	var b bool
+	if err := json.Unmarshal(data, &b); err == nil {
+		*f = FlexibleBool(b)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		switch s {
+		case "true", "True", "TRUE", "1":
+			*f = FlexibleBool(true)
+			return nil
+		case "false", "False", "FALSE", "0", "":
+			*f = FlexibleBool(false)
+			return nil
+		default:
+			return fmt.Errorf("FlexibleBool: cannot parse string %q as boolean", s)
+		}
+	}
+
+	return fmt.Errorf("FlexibleBool: cannot unmarshal %s", string(data))
+}
+
+// MarshalJSON implements json.Marshaler for FlexibleBool.
+// It always marshals as a boolean.
+func (f FlexibleBool) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bool(f))
+}
+
+// Bool returns the bool value of the FlexibleBool.
+func (f FlexibleBool) Bool() bool {
+	return bool(f)
+}
