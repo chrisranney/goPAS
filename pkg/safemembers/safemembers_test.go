@@ -503,3 +503,174 @@ func TestSafeMember_Struct(t *testing.T) {
 		t.Errorf("MemberType = %v, want User", member.MemberType)
 	}
 }
+
+func TestFlexibleID_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		jsonData string
+		want     string
+		wantErr  bool
+	}{
+		{
+			name:     "unmarshal string UUID",
+			jsonData: `"12345678-1234-1234-1234-123456789012"`,
+			want:     "12345678-1234-1234-1234-123456789012",
+			wantErr:  false,
+		},
+		{
+			name:     "unmarshal string number",
+			jsonData: `"12345"`,
+			want:     "12345",
+			wantErr:  false,
+		},
+		{
+			name:     "unmarshal integer",
+			jsonData: `12345`,
+			want:     "12345",
+			wantErr:  false,
+		},
+		{
+			name:     "unmarshal large integer",
+			jsonData: `9876543210`,
+			want:     "9876543210",
+			wantErr:  false,
+		},
+		{
+			name:     "unmarshal zero",
+			jsonData: `0`,
+			want:     "0",
+			wantErr:  false,
+		},
+		{
+			name:     "unmarshal empty string",
+			jsonData: `""`,
+			want:     "",
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var f FlexibleID
+			err := json.Unmarshal([]byte(tt.jsonData), &f)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("UnmarshalJSON() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("UnmarshalJSON() unexpected error: %v", err)
+				return
+			}
+			if string(f) != tt.want {
+				t.Errorf("UnmarshalJSON() = %v, want %v", string(f), tt.want)
+			}
+		})
+	}
+}
+
+func TestFlexibleID_MarshalJSON(t *testing.T) {
+	f := FlexibleID("12345")
+	data, err := json.Marshal(f)
+	if err != nil {
+		t.Errorf("MarshalJSON() unexpected error: %v", err)
+		return
+	}
+	want := `"12345"`
+	if string(data) != want {
+		t.Errorf("MarshalJSON() = %v, want %v", string(data), want)
+	}
+}
+
+func TestFlexibleID_String(t *testing.T) {
+	f := FlexibleID("test-id")
+	if f.String() != "test-id" {
+		t.Errorf("String() = %v, want test-id", f.String())
+	}
+}
+
+func TestSafeMember_UnmarshalWithIntegerMemberID(t *testing.T) {
+	// This test verifies that SafeMember correctly handles memberId as an integer
+	// which is what the CyberArk API actually returns in some versions
+	jsonData := `{
+		"safeUrlId": "TestSafe",
+		"safeName": "TestSafe",
+		"safeNumber": 1,
+		"memberId": 12345,
+		"memberName": "admin",
+		"memberType": "User"
+	}`
+
+	var member SafeMember
+	err := json.Unmarshal([]byte(jsonData), &member)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal SafeMember with integer memberId: %v", err)
+	}
+
+	if member.MemberID.String() != "12345" {
+		t.Errorf("MemberID = %v, want 12345", member.MemberID.String())
+	}
+	if member.MemberName != "admin" {
+		t.Errorf("MemberName = %v, want admin", member.MemberName)
+	}
+}
+
+func TestSafeMember_UnmarshalWithStringMemberID(t *testing.T) {
+	// This test verifies that SafeMember correctly handles memberId as a string UUID
+	// which is what the CyberArk documentation shows
+	jsonData := `{
+		"safeUrlId": "TestSafe",
+		"safeName": "TestSafe",
+		"safeNumber": 1,
+		"memberId": "12345678-1234-1234-1234-123456789012",
+		"memberName": "admin",
+		"memberType": "User"
+	}`
+
+	var member SafeMember
+	err := json.Unmarshal([]byte(jsonData), &member)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal SafeMember with string memberId: %v", err)
+	}
+
+	if member.MemberID.String() != "12345678-1234-1234-1234-123456789012" {
+		t.Errorf("MemberID = %v, want 12345678-1234-1234-1234-123456789012", member.MemberID.String())
+	}
+	if member.MemberName != "admin" {
+		t.Errorf("MemberName = %v, want admin", member.MemberName)
+	}
+}
+
+func TestSafeMembersResponse_UnmarshalWithIntegerMemberID(t *testing.T) {
+	// This test verifies the full response structure with integer memberId
+	jsonData := `{
+		"value": [
+			{
+				"safeUrlId": "TestSafe",
+				"safeName": "TestSafe",
+				"safeNumber": 1,
+				"memberId": 99999,
+				"memberName": "admin",
+				"memberType": "User"
+			}
+		],
+		"count": 1
+	}`
+
+	var response SafeMembersResponse
+	err := json.Unmarshal([]byte(jsonData), &response)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal SafeMembersResponse: %v", err)
+	}
+
+	if response.Count != 1 {
+		t.Errorf("Count = %v, want 1", response.Count)
+	}
+	if len(response.Value) != 1 {
+		t.Fatalf("len(Value) = %v, want 1", len(response.Value))
+	}
+	if response.Value[0].MemberID.String() != "99999" {
+		t.Errorf("MemberID = %v, want 99999", response.Value[0].MemberID.String())
+	}
+}
