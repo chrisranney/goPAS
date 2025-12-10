@@ -89,7 +89,7 @@ func TestCCPCommand_Setup_WithOptions(t *testing.T) {
 	}{
 		{
 			name: "successful setup with required options",
-			args: []string{"setup", "--app-id=TestApp", "--safe=TestSafe"},
+			args: []string{"setup", "--app-id=TestApp", "--safe=TestSafe", "--ccp-url=https://ccp.example.com"},
 			check: func(t *testing.T, cfg *config.Config) {
 				if cfg.CCP == nil {
 					t.Fatal("CCP should be configured")
@@ -99,6 +99,9 @@ func TestCCPCommand_Setup_WithOptions(t *testing.T) {
 				}
 				if cfg.CCP.Safe != "TestSafe" {
 					t.Errorf("Safe = %v, want TestSafe", cfg.CCP.Safe)
+				}
+				if cfg.CCP.CCPURL != "https://ccp.example.com" {
+					t.Errorf("CCPURL = %v, want https://ccp.example.com", cfg.CCP.CCPURL)
 				}
 				if !cfg.CCP.Enabled {
 					t.Error("CCP should be enabled after setup")
@@ -170,6 +173,12 @@ func TestCCPCommand_Setup_WithOptions(t *testing.T) {
 			args:    []string{"setup", "--app-id=TestApp"},
 			wantErr: true,
 			errMsg:  "--safe is required",
+		},
+		{
+			name:    "setup missing ccp-url",
+			args:    []string{"setup", "--app-id=TestApp", "--safe=TestSafe"},
+			wantErr: true,
+			errMsg:  "--ccp-url is required",
 		},
 	}
 
@@ -491,11 +500,12 @@ func TestCCPCommand_Setup_PartialUpdate(t *testing.T) {
 		Enabled:  true,
 		AppID:    "OldApp",
 		Safe:     "OldSafe",
+		CCPURL:   "https://old-ccp.example.com",
 		UserName: "olduser",
 	}
 
-	// Update with new values
-	err := cmd.Execute(execCtx, []string{"setup", "--app-id=NewApp", "--safe=NewSafe"})
+	// Update with new values (must include --ccp-url since it's required)
+	err := cmd.Execute(execCtx, []string{"setup", "--app-id=NewApp", "--safe=NewSafe", "--ccp-url=https://new-ccp.example.com"})
 	if err != nil {
 		t.Fatalf("Execute() failed: %v", err)
 	}
@@ -506,6 +516,9 @@ func TestCCPCommand_Setup_PartialUpdate(t *testing.T) {
 	}
 	if execCtx.Config.CCP.Safe != "NewSafe" {
 		t.Errorf("Safe = %v, want NewSafe", execCtx.Config.CCP.Safe)
+	}
+	if execCtx.Config.CCP.CCPURL != "https://new-ccp.example.com" {
+		t.Errorf("CCPURL = %v, want https://new-ccp.example.com", execCtx.Config.CCP.CCPURL)
 	}
 
 	// Verify old values that weren't specified are preserved
@@ -518,10 +531,11 @@ func TestCCPCommand_Setup_EmptyValueClears(t *testing.T) {
 	cmd := &CCPCommand{}
 	execCtx := createTestExecutionContext(t)
 
-	// Setup with initial values
+	// Setup with initial values (including required --ccp-url)
 	err := cmd.Execute(execCtx, []string{"setup",
 		"--app-id=TestApp",
 		"--safe=TestSafe",
+		"--ccp-url=https://ccp.example.com",
 		"--username=admin",
 	})
 	if err != nil {
@@ -619,7 +633,7 @@ func BenchmarkCCPCommand_Setup(b *testing.B) {
 	defer os.Setenv("HOME", origHome)
 
 	cmd := &CCPCommand{}
-	args := []string{"setup", "--app-id=TestApp", "--safe=TestSafe"}
+	args := []string{"setup", "--app-id=TestApp", "--safe=TestSafe", "--ccp-url=https://ccp.example.com"}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

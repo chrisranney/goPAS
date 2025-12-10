@@ -334,21 +334,21 @@ func TestConfig_GetCCPURL(t *testing.T) {
 		want string
 	}{
 		{
-			name: "CCP nil returns DefaultServer",
+			name: "CCP nil returns empty (no fallback)",
 			cfg: &Config{
 				DefaultServer: "https://default.example.com",
 			},
-			want: "https://default.example.com",
+			want: "", // CCP URL must be explicitly set
 		},
 		{
-			name: "CCP URL empty returns DefaultServer",
+			name: "CCP URL empty returns empty (no fallback)",
 			cfg: &Config{
 				DefaultServer: "https://default.example.com",
 				CCP: &CCPConfig{
 					CCPURL: "",
 				},
 			},
-			want: "https://default.example.com",
+			want: "", // CCP URL must be explicitly set
 		},
 		{
 			name: "CCP URL specified returns CCP URL",
@@ -372,6 +372,56 @@ func TestConfig_GetCCPURL(t *testing.T) {
 			result := tt.cfg.GetCCPURL()
 			if result != tt.want {
 				t.Errorf("GetCCPURL() = %v, want %v", result, tt.want)
+			}
+		})
+	}
+}
+
+func TestConfig_GetPVWAURL(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  *Config
+		want string
+	}{
+		{
+			name: "CCP nil returns DefaultServer",
+			cfg: &Config{
+				DefaultServer: "https://default.example.com",
+			},
+			want: "https://default.example.com",
+		},
+		{
+			name: "CCP PVWAURL empty returns DefaultServer",
+			cfg: &Config{
+				DefaultServer: "https://default.example.com",
+				CCP: &CCPConfig{
+					PVWAURL: "",
+				},
+			},
+			want: "https://default.example.com",
+		},
+		{
+			name: "CCP PVWAURL specified returns PVWAURL",
+			cfg: &Config{
+				DefaultServer: "https://default.example.com",
+				CCP: &CCPConfig{
+					PVWAURL: "https://pvwa.example.com",
+				},
+			},
+			want: "https://pvwa.example.com",
+		},
+		{
+			name: "Both empty returns empty",
+			cfg:  &Config{},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.cfg.GetPVWAURL()
+			if result != tt.want {
+				t.Errorf("GetPVWAURL() = %v, want %v", result, tt.want)
 			}
 		})
 	}

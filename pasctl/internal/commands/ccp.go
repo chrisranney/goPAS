@@ -45,7 +45,8 @@ Setup Options (can also be set via 'set' command):
   --address=ADDR        Filter by address/hostname (optional)
   --query=QUERY         Free-text search query (optional)
   --auth-method=METHOD  Auth method to use after retrieving creds (optional)
-  --ccp-url=URL         CCP server URL (defaults to server URL)
+  --ccp-url=URL         CCP server URL for credential retrieval (required)
+  --pvwa-url=URL        PVWA server URL for authentication (defaults to server URL)
   --client-cert=PATH    Client certificate for mutual TLS (optional)
   --client-key=PATH     Client key for mutual TLS (optional)
 
@@ -121,6 +122,9 @@ func (c *CCPCommand) setup(execCtx *ExecutionContext, args []string) error {
 		} else if strings.HasPrefix(arg, "--ccp-url=") {
 			execCtx.Config.CCP.CCPURL = strings.TrimPrefix(arg, "--ccp-url=")
 			hasOptions = true
+		} else if strings.HasPrefix(arg, "--pvwa-url=") {
+			execCtx.Config.CCP.PVWAURL = strings.TrimPrefix(arg, "--pvwa-url=")
+			hasOptions = true
 		} else if strings.HasPrefix(arg, "--client-cert=") {
 			execCtx.Config.CCP.ClientCert = strings.TrimPrefix(arg, "--client-cert=")
 			hasOptions = true
@@ -141,6 +145,9 @@ func (c *CCPCommand) setup(execCtx *ExecutionContext, args []string) error {
 	}
 	if execCtx.Config.CCP.Safe == "" {
 		return fmt.Errorf("--safe is required")
+	}
+	if execCtx.Config.CCP.CCPURL == "" {
+		return fmt.Errorf("--ccp-url is required")
 	}
 
 	// Enable CCP
@@ -260,12 +267,14 @@ func (c *CCPCommand) interactiveSetup(execCtx *ExecutionContext) error {
 		execCtx.Config.CCP.Address = address
 	}
 
-	// CCP URL (optional)
+	// CCP URL (required - for credential retrieval)
+	fmt.Println()
+	fmt.Println("Server URLs:")
+	fmt.Println("  CCP = Central Credential Provider (retrieves credentials)")
+	fmt.Println("  PVWA = Privileged Vault Web Access (authenticates to CyberArk)")
+	fmt.Println()
 	defaultCCPURL := execCtx.Config.CCP.CCPURL
-	if defaultCCPURL == "" && execCtx.Config.DefaultServer != "" {
-		defaultCCPURL = execCtx.Config.DefaultServer
-	}
-	promptText = "CCP Server URL (optional, defaults to server URL)"
+	promptText = "CCP Server URL (required)"
 	if defaultCCPURL != "" {
 		promptText = fmt.Sprintf("CCP Server URL [%s]", defaultCCPURL)
 	}
@@ -275,6 +284,26 @@ func (c *CCPCommand) interactiveSetup(execCtx *ExecutionContext) error {
 	}
 	if ccpURL != "" {
 		execCtx.Config.CCP.CCPURL = ccpURL
+	}
+	if execCtx.Config.CCP.CCPURL == "" {
+		return fmt.Errorf("CCP Server URL is required")
+	}
+
+	// PVWA URL (optional - for authentication)
+	defaultPVWAURL := execCtx.Config.CCP.PVWAURL
+	if defaultPVWAURL == "" && execCtx.Config.DefaultServer != "" {
+		defaultPVWAURL = execCtx.Config.DefaultServer
+	}
+	promptText = "PVWA Server URL (optional, defaults to server URL)"
+	if defaultPVWAURL != "" {
+		promptText = fmt.Sprintf("PVWA Server URL [%s]", defaultPVWAURL)
+	}
+	pvwaURL, err := prompt(promptText + ": ")
+	if err != nil {
+		return err
+	}
+	if pvwaURL != "" {
+		execCtx.Config.CCP.PVWAURL = pvwaURL
 	}
 
 	// Auth method (optional)
@@ -353,6 +382,9 @@ func (c *CCPCommand) show(execCtx *ExecutionContext) error {
 	}
 	if ccp.CCPURL != "" {
 		fmt.Printf("  CCP URL:       %s\n", ccp.CCPURL)
+	}
+	if ccp.PVWAURL != "" {
+		fmt.Printf("  PVWA URL:      %s\n", ccp.PVWAURL)
 	}
 	if ccp.AuthMethod != "" {
 		fmt.Printf("  Auth Method:   %s\n", ccp.AuthMethod)

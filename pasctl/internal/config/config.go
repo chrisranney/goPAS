@@ -27,9 +27,14 @@ type CCPConfig struct {
 	// Enabled indicates whether CCP default login is enabled
 	Enabled bool `json:"enabled,omitempty"`
 
-	// CCPURL is the CCP server URL (e.g., https://cyberark.example.com)
-	// If empty, uses DefaultServer
+	// CCPURL is the CCP server URL for retrieving credentials
+	// (e.g., https://ccp.cyberark.example.com)
 	CCPURL string `json:"ccp_url,omitempty"`
+
+	// PVWAURL is the PVWA server URL for authentication after retrieving credentials
+	// (e.g., https://pvwa.cyberark.example.com)
+	// If empty, uses DefaultServer
+	PVWAURL string `json:"pvwa_url,omitempty"`
 
 	// AppID is the application ID registered in CyberArk for CCP access (required)
 	AppID string `json:"app_id,omitempty"`
@@ -176,10 +181,20 @@ func (c *Config) IsCCPEnabled() bool {
 	return c.CCP != nil && c.CCP.Enabled && c.CCP.AppID != "" && c.CCP.Safe != ""
 }
 
-// GetCCPURL returns the CCP URL, falling back to DefaultServer if not specified.
+// GetCCPURL returns the CCP URL for credential retrieval.
+// Returns empty string if not configured (CCP URL must be explicitly set).
 func (c *Config) GetCCPURL() string {
 	if c.CCP != nil && c.CCP.CCPURL != "" {
 		return c.CCP.CCPURL
+	}
+	return ""
+}
+
+// GetPVWAURL returns the PVWA URL for authentication after CCP credential retrieval.
+// Falls back to DefaultServer if not explicitly set in CCP config.
+func (c *Config) GetPVWAURL() string {
+	if c.CCP != nil && c.CCP.PVWAURL != "" {
+		return c.CCP.PVWAURL
 	}
 	return c.DefaultServer
 }

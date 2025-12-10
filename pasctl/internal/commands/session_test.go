@@ -143,7 +143,7 @@ func TestConnectCommand_Execute_CCPNoCCPURL(t *testing.T) {
 	cmd := &ConnectCommand{}
 	execCtx := createTestSessionExecutionContext(t)
 
-	// Configure CCP without URL and no default server
+	// Configure CCP without CCP URL
 	execCtx.Config.CCP = &config.CCPConfig{
 		Enabled: true,
 		AppID:   "TestApp",
@@ -154,10 +154,33 @@ func TestConnectCommand_Execute_CCPNoCCPURL(t *testing.T) {
 
 	err := cmd.Execute(execCtx, []string{"--ccp"})
 	if err == nil {
-		t.Error("Execute() with --ccp but no URL should return error")
+		t.Error("Execute() with --ccp but no CCP URL should return error")
 	}
-	if !strings.Contains(err.Error(), "URL") {
-		t.Errorf("Error should mention missing URL, got: %v", err)
+	if !strings.Contains(err.Error(), "CCP URL") {
+		t.Errorf("Error should mention missing CCP URL, got: %v", err)
+	}
+}
+
+func TestConnectCommand_Execute_CCPNoPVWAURL(t *testing.T) {
+	cmd := &ConnectCommand{}
+	execCtx := createTestSessionExecutionContext(t)
+
+	// Configure CCP with CCP URL but no PVWA URL
+	execCtx.Config.CCP = &config.CCPConfig{
+		Enabled: true,
+		AppID:   "TestApp",
+		Safe:    "TestSafe",
+		CCPURL:  "https://ccp.example.com",
+		PVWAURL: "",
+	}
+	execCtx.Config.DefaultServer = "" // No fallback
+
+	err := cmd.Execute(execCtx, []string{"--ccp"})
+	if err == nil {
+		t.Error("Execute() with --ccp but no PVWA URL should return error")
+	}
+	if !strings.Contains(err.Error(), "PVWA URL") {
+		t.Errorf("Error should mention missing PVWA URL, got: %v", err)
 	}
 }
 
@@ -232,6 +255,51 @@ func TestConnectCommand_Execute_CCPWithMockServer(t *testing.T) {
 
 func TestConnectCommand_Execute_CCPWithServerURL(t *testing.T) {
 	// Test that server URL can be provided along with --ccp
+	// Create separate mock servers for CCP and PVWA
+	ccpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"Content":  "testpassword",
+			"UserName": "testuser",
+		})
+	}))
+	defer ccpServer.Close()
+
+	pvwaServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return auth error
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ErrorCode": "PASWS001E",
+			"ErrorMsg":  "Authentication failed",
+		})
+	}))
+	defer pvwaServer.Close()
+
+	cmd := &ConnectCommand{}
+	execCtx := createTestSessionExecutionContext(t)
+
+	execCtx.Config.CCP = &config.CCPConfig{
+		Enabled: true,
+		AppID:   "TestApp",
+		Safe:    "TestSafe",
+		CCPURL:  ccpServer.URL,
+		PVWAURL: pvwaServer.URL, // Separate PVWA URL
+	}
+	execCtx.Config.InsecureSSL = true
+
+	// Execute with --ccp flag (PVWA URL from config)
+	err := cmd.Execute(execCtx, []string{"--ccp"})
+
+	// Should get past CCP retrieval - error should be about auth, not CCP config
+	if err != nil && strings.Contains(err.Error(), "not configured") {
+		t.Errorf("Should not get CCP configuration error when properly configured: %v", err)
+	}
+	// We expect authentication to fail, which is fine for this test
+}
+
+func TestConnectCommand_Execute_CCPWithCommandLineServerURL(t *testing.T) {
+	// Test that PVWA server URL can be provided via command line along with --ccp
 	ccpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -249,10 +317,11 @@ func TestConnectCommand_Execute_CCPWithServerURL(t *testing.T) {
 		AppID:   "TestApp",
 		Safe:    "TestSafe",
 		CCPURL:  ccpServer.URL,
+		// No PVWAURL - will use command line argument
 	}
 	execCtx.Config.InsecureSSL = true
 
-	// Provide server URL with --ccp flag
+	// Provide PVWA server URL via command line with --ccp flag
 	err := cmd.Execute(execCtx, []string{ccpServer.URL, "--ccp"})
 
 	// Should get past CCP retrieval - error should be about auth, not CCP config

@@ -83,21 +83,20 @@ func (c *ConnectCommand) Execute(execCtx *ExecutionContext, args []string) error
 			return fmt.Errorf("CCP is not configured - use 'ccp setup' to configure")
 		}
 
-		// Use CCP URL or server URL from config
+		// Get CCP URL for credential retrieval (must be explicitly configured)
 		ccpURL := execCtx.Config.GetCCPURL()
-		if ccpURL == "" && serverURL != "" {
-			ccpURL = serverURL
-		}
 		if ccpURL == "" {
-			return fmt.Errorf("no CCP URL configured and no server URL provided")
+			return fmt.Errorf("no CCP URL configured - use 'ccp setup' to set the CCP server URL")
 		}
 
-		// Use server URL from config if not provided
+		// Get PVWA URL for authentication (from command line, CCP config, or default server)
+		// Note: CCP and PVWA are different services - CCP retrieves credentials,
+		// PVWA handles authentication
 		if serverURL == "" {
-			serverURL = execCtx.Config.DefaultServer
+			serverURL = execCtx.Config.GetPVWAURL()
 		}
 		if serverURL == "" {
-			serverURL = ccpURL
+			return fmt.Errorf("no PVWA URL configured - use 'ccp setup' to set the PVWA server URL or provide it via command line")
 		}
 
 		output.PrintInfo("Retrieving credentials from CCP...")
