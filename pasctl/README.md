@@ -7,6 +7,7 @@ A fully interactive REPL (Read-Eval-Print Loop) shell for managing CyberArk Priv
 - **Interactive Shell**: Modern shell experience with command history, tab completion, and colored output
 - **Multiple Output Formats**: Table, JSON, and YAML output formats
 - **Session Management**: Secure authentication with support for CyberArk, LDAP, RADIUS, and Windows authentication
+- **CCP Integration**: Automatic credential retrieval from CyberArk Central Credential Provider (CCP)
 - **Comprehensive Commands**: Manage accounts, safes, users, platforms, PSM sessions, and system health
 - **Script Mode**: Execute commands from files or stdin for automation
 - **Configuration**: Persistent configuration with sensible defaults
@@ -78,8 +79,19 @@ echo "accounts list --safe=Production" | ./pasctl
 | Command | Description |
 |---------|-------------|
 | `connect <url>` | Connect to a CyberArk server |
+| `connect --ccp` | Connect using CCP credentials |
 | `disconnect` | Disconnect from the current server |
 | `status` | Show connection status |
+
+### CCP Commands
+
+| Command | Description |
+|---------|-------------|
+| `ccp setup` | Interactive setup wizard for CCP configuration |
+| `ccp show` | Show current CCP configuration |
+| `ccp enable` | Enable CCP default login |
+| `ccp disable` | Disable CCP default login |
+| `ccp clear` | Clear all CCP configuration |
 
 ### Account Commands
 
@@ -243,6 +255,152 @@ pasctl> health components
 │ CPM01              │ CPM    │ Online             │ ...    │
 └────────────────────┴────────┴────────────────────┴────────┘
 ```
+
+## CCP Authentication
+
+CCP (Central Credential Provider) allows pasctl to retrieve login credentials from a vaulted account, eliminating the need to enter passwords manually. This is ideal for automation scenarios or environments where you want to avoid storing credentials locally.
+
+**Security Note:** Passwords are NEVER stored in the configuration file - they are retrieved from CCP at runtime only.
+
+### Prerequisites
+
+Before using CCP authentication, ensure:
+
+1. **CCP Service**: A CCP web service is deployed and accessible
+2. **Application ID**: An application ID is registered in CyberArk for CCP access
+3. **Vaulted Account**: The login credentials are stored in a CyberArk safe
+4. **Permissions**: The application ID has permission to retrieve the credential
+
+### CCP Setup
+
+#### Interactive Setup (Recommended)
+
+Run the interactive setup wizard:
+
+```
+pasctl> ccp setup
+
+CCP Setup Wizard
+================
+Configure automatic credential retrieval from CyberArk CCP.
+Passwords are NEVER stored - they are retrieved at runtime only.
+
+Application ID (required): MyApp
+Safe name (required): AdminCredentials
+Object name (optional):
+Folder path (optional): Root
+Username filter (optional): admin
+Address filter (optional):
+CCP Server URL [https://cyberark.example.com]:
+Auth method [ldap]:
+
+✓ CCP configuration saved and enabled
+
+Use 'connect --ccp' to login with CCP credentials.
+```
+
+#### Command-Line Setup
+
+You can also configure CCP with command-line options:
+
+```bash
+# Basic setup with required options
+pasctl> ccp setup --app-id=MyApp --safe=AdminCredentials
+
+# Full setup with all options
+pasctl> ccp setup --app-id=MyApp --safe=AdminCredentials --username=admin --auth-method=ldap
+
+# Setup with client certificate for mutual TLS
+pasctl> ccp setup --app-id=MyApp --safe=AdminCredentials --client-cert=/path/to/cert.pem --client-key=/path/to/key.pem
+```
+
+#### Setup Options
+
+| Option | Description | Required |
+|--------|-------------|----------|
+| `--app-id=ID` | Application ID registered in CyberArk | Yes |
+| `--safe=SAFE` | Safe containing the login credential | Yes |
+| `--object=NAME` | Account object name | No |
+| `--folder=PATH` | Folder path within the safe | No |
+| `--username=USER` | Filter by username | No |
+| `--address=ADDR` | Filter by address/hostname | No |
+| `--query=QUERY` | Free-text search query | No |
+| `--auth-method=METHOD` | Auth method after login (cyberark/ldap/radius) | No |
+| `--ccp-url=URL` | CCP server URL (defaults to server URL) | No |
+| `--client-cert=PATH` | Client certificate for mutual TLS | No |
+| `--client-key=PATH` | Client key for mutual TLS | No |
+
+### Using CCP to Connect
+
+Once CCP is configured, use the `--ccp` flag to connect:
+
+```
+pasctl> connect --ccp
+ℹ Retrieving credentials from CCP...
+✓ Retrieved credentials for user: admin
+ℹ Connecting to https://cyberark.example.com...
+✓ Connected to https://cyberark.example.com as admin
+```
+
+You can also specify a different server URL:
+
+```
+pasctl> connect https://other-server.example.com --ccp
+```
+
+### Managing CCP Configuration
+
+```
+# View current CCP configuration
+pasctl> ccp show
+
+CCP Configuration
+-----------------
+  Status:        Enabled
+  App ID:        MyApp
+  Safe:          AdminCredentials
+  Username:      admin
+  Auth Method:   ldap
+
+# Temporarily disable CCP (keeps configuration)
+pasctl> ccp disable
+✓ CCP default login disabled
+
+# Re-enable CCP
+pasctl> ccp enable
+✓ CCP default login enabled
+
+# Clear all CCP configuration
+pasctl> ccp clear
+✓ CCP configuration cleared
+```
+
+### CCP Configuration File
+
+CCP settings are stored in `~/.pasctl/config.json`:
+
+```json
+{
+  "default_server": "https://cyberark.example.com",
+  "default_auth_type": "ldap",
+  "ccp": {
+    "enabled": true,
+    "app_id": "MyApp",
+    "safe": "AdminCredentials",
+    "username": "admin",
+    "auth_method": "ldap"
+  }
+}
+```
+
+### Troubleshooting CCP
+
+| Issue | Solution |
+|-------|----------|
+| "CCP is not configured" | Run `ccp setup` to configure CCP settings |
+| "Failed to retrieve credentials" | Verify the application ID has access to the safe |
+| Certificate errors | Use `--insecure` flag or configure proper certificates |
+| Wrong credentials retrieved | Use additional filters (`--username`, `--address`, `--object`) to narrow down the account |
 
 ## Tab Completion
 
