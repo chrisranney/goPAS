@@ -675,3 +675,168 @@ func TestSafeMembersResponse_UnmarshalWithIntegerMemberID(t *testing.T) {
 		t.Errorf("MemberID = %v, want 99999", response.Value[0].MemberID.String())
 	}
 }
+
+// Tests for nil session and additional edge cases
+
+func TestList_InvalidSession(t *testing.T) {
+	_, err := List(context.Background(), nil, "TestSafe", ListOptions{})
+	if err == nil {
+		t.Error("List() expected error for nil session")
+	}
+}
+
+func TestList_AllOptions(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(SafeMembersResponse{Value: []SafeMember{}, Count: 0})
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	opts := ListOptions{
+		Search: "admin",
+		Sort:   "memberName",
+		Offset: 10,
+		Limit:  50,
+		Filter: "memberType eq User",
+	}
+	_, err := List(context.Background(), sess, "TestSafe", opts)
+	if err != nil {
+		t.Errorf("List() unexpected error: %v", err)
+	}
+}
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, "TestSafe", "admin")
+	if err == nil {
+		t.Error("Get() expected error for nil session")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, "TestSafe", "admin")
+	if err == nil {
+		t.Error("Get() expected error for server error")
+	}
+}
+
+func TestAdd_InvalidSession(t *testing.T) {
+	_, err := Add(context.Background(), nil, "TestSafe", AddOptions{MemberName: "newuser", Permissions: DefaultUserPermissions()})
+	if err == nil {
+		t.Error("Add() expected error for nil session")
+	}
+}
+
+func TestAdd_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Add(context.Background(), sess, "TestSafe", AddOptions{MemberName: "newuser", Permissions: DefaultUserPermissions()})
+	if err == nil {
+		t.Error("Add() expected error for server error")
+	}
+}
+
+func TestUpdate_InvalidSession(t *testing.T) {
+	_, err := Update(context.Background(), nil, "TestSafe", "admin", UpdateOptions{})
+	if err == nil {
+		t.Error("Update() expected error for nil session")
+	}
+}
+
+func TestUpdate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Update(context.Background(), sess, "TestSafe", "admin", UpdateOptions{})
+	if err == nil {
+		t.Error("Update() expected error for server error")
+	}
+}
+
+func TestRemove_InvalidSession(t *testing.T) {
+	err := Remove(context.Background(), nil, "TestSafe", "admin")
+	if err == nil {
+		t.Error("Remove() expected error for nil session")
+	}
+}
+
+func TestRemove_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Remove(context.Background(), sess, "TestSafe", "admin")
+	if err == nil {
+		t.Error("Remove() expected error for server error")
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	opts := ListOptions{
+		Search: "admin",
+		Sort:   "memberName",
+		Offset: 10,
+		Limit:  50,
+		Filter: "memberType eq User",
+	}
+
+	if opts.Search != "admin" {
+		t.Errorf("Search = %v, want admin", opts.Search)
+	}
+	if opts.Limit != 50 {
+		t.Errorf("Limit = %v, want 50", opts.Limit)
+	}
+}
+
+func TestAddOptions_Struct(t *testing.T) {
+	perms := DefaultUserPermissions()
+	opts := AddOptions{
+		MemberName:               "newuser",
+		SearchIn:                 "Vault",
+		MembershipExpirationDate: 1705315800,
+		Permissions:              perms,
+	}
+
+	if opts.MemberName != "newuser" {
+		t.Errorf("MemberName = %v, want newuser", opts.MemberName)
+	}
+	if opts.SearchIn != "Vault" {
+		t.Errorf("SearchIn = %v, want Vault", opts.SearchIn)
+	}
+	if opts.Permissions == nil {
+		t.Error("Permissions should not be nil")
+	}
+}
+
+func TestUpdateOptions_Struct(t *testing.T) {
+	perms := DefaultAdminPermissions()
+	opts := UpdateOptions{
+		MembershipExpirationDate: 1705920600,
+		Permissions:              perms,
+	}
+
+	if opts.MembershipExpirationDate != 1705920600 {
+		t.Errorf("MembershipExpirationDate = %v, want 1705920600", opts.MembershipExpirationDate)
+	}
+}

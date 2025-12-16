@@ -469,3 +469,210 @@ func TestStartImportJob_InvalidSession(t *testing.T) {
 		t.Error("StartImportJob() with nil session expected error, got nil")
 	}
 }
+
+func TestGetImportJob_InvalidSession(t *testing.T) {
+	_, err := GetImportJob(context.Background(), nil, "job-123")
+	if err == nil {
+		t.Error("GetImportJob() with nil session expected error, got nil")
+	}
+}
+
+func TestListImportJobs_InvalidSession(t *testing.T) {
+	_, err := ListImportJobs(context.Background(), nil)
+	if err == nil {
+		t.Error("ListImportJobs() with nil session expected error, got nil")
+	}
+}
+
+func TestAddPendingAccount_InvalidSession(t *testing.T) {
+	_, err := AddPendingAccount(context.Background(), nil, ImportAccount{
+		UserName:   "admin",
+		Address:    "server",
+		PlatformID: "WinServer",
+	})
+	if err == nil {
+		t.Error("AddPendingAccount() with nil session expected error, got nil")
+	}
+}
+
+func TestGetAccountPasswordVersions_InvalidSession(t *testing.T) {
+	_, err := GetAccountPasswordVersions(context.Background(), nil, "acc-123")
+	if err == nil {
+		t.Error("GetAccountPasswordVersions() with nil session expected error, got nil")
+	}
+}
+
+func TestGeneratePassword_InvalidSession(t *testing.T) {
+	_, err := GeneratePassword(context.Background(), nil, "acc-123")
+	if err == nil {
+		t.Error("GeneratePassword() with nil session expected error, got nil")
+	}
+}
+
+func TestStartImportJob_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := StartImportJob(context.Background(), sess, StartImportJobOptions{
+		Accounts: []ImportAccount{{UserName: "test", Address: "server", PlatformID: "WinServer", SafeName: "Safe"}},
+	})
+	if err == nil {
+		t.Error("StartImportJob() expected error for server error")
+	}
+}
+
+func TestGetImportJob_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetImportJob(context.Background(), sess, "job-123")
+	if err == nil {
+		t.Error("GetImportJob() expected error for server error")
+	}
+}
+
+func TestAddPendingAccount_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := AddPendingAccount(context.Background(), sess, ImportAccount{
+		UserName:   "admin",
+		Address:    "server",
+		PlatformID: "WinServer",
+	})
+	if err == nil {
+		t.Error("AddPendingAccount() expected error for server error")
+	}
+}
+
+func TestGetAccountPasswordVersions_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetAccountPasswordVersions(context.Background(), sess, "acc-123")
+	if err == nil {
+		t.Error("GetAccountPasswordVersions() expected error for server error")
+	}
+}
+
+func TestGeneratePassword_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GeneratePassword(context.Background(), sess, "acc-123")
+	if err == nil {
+		t.Error("GeneratePassword() expected error for server error")
+	}
+}
+
+func TestImportAccount_Struct(t *testing.T) {
+	account := ImportAccount{
+		UserName:   "admin",
+		Address:    "server.example.com",
+		SafeName:   "TestSafe",
+		PlatformID: "WinServer",
+		Secret:     "password123",
+		PlatformAccountProperties: map[string]interface{}{
+			"LogonDomain": "DOMAIN",
+		},
+	}
+
+	if account.UserName != "admin" {
+		t.Errorf("UserName = %v, want admin", account.UserName)
+	}
+	if account.PlatformAccountProperties["LogonDomain"] != "DOMAIN" {
+		t.Errorf("PlatformAccountProperties[LogonDomain] = %v, want DOMAIN", account.PlatformAccountProperties["LogonDomain"])
+	}
+}
+
+func TestImportJob_Struct(t *testing.T) {
+	job := ImportJob{
+		ID:     "job-123",
+		Source: "File",
+		Status: "Completed",
+	}
+
+	if job.ID != "job-123" {
+		t.Errorf("ID = %v, want job-123", job.ID)
+	}
+	if job.Status != "Completed" {
+		t.Errorf("Status = %v, want Completed", job.Status)
+	}
+}
+
+func TestImportJobResult_Struct(t *testing.T) {
+	result := ImportJobResult{
+		ID:            "job-123",
+		Status:        "Completed",
+		TotalAccounts: 10,
+		SuccessCount:  9,
+		FailedCount:   1,
+	}
+
+	if result.TotalAccounts != 10 {
+		t.Errorf("TotalAccounts = %v, want 10", result.TotalAccounts)
+	}
+	if result.SuccessCount != 9 {
+		t.Errorf("SuccessCount = %v, want 9", result.SuccessCount)
+	}
+}
+
+func TestStartImportJobOptions_Struct(t *testing.T) {
+	opts := StartImportJobOptions{
+		Accounts: []ImportAccount{
+			{UserName: "admin", Address: "server1"},
+			{UserName: "root", Address: "server2"},
+		},
+	}
+
+	if len(opts.Accounts) != 2 {
+		t.Errorf("Accounts length = %v, want 2", len(opts.Accounts))
+	}
+}
+
+func TestPendingAccount_Struct(t *testing.T) {
+	account := PendingAccount{
+		ID:         "pending-123",
+		UserName:   "admin",
+		Address:    "server",
+		PlatformID: "WinServer",
+	}
+
+	if account.ID != "pending-123" {
+		t.Errorf("ID = %v, want pending-123", account.ID)
+	}
+}
+
+func TestPasswordVersionInfo_Struct(t *testing.T) {
+	info := PasswordVersionInfo{
+		Version: 2,
+		Status:  "Current",
+	}
+
+	if info.Version != 2 {
+		t.Errorf("Version = %v, want 2", info.Version)
+	}
+	if info.Status != "Current" {
+		t.Errorf("Status = %v, want Current", info.Status)
+	}
+}

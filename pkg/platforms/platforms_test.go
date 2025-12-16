@@ -512,3 +512,213 @@ func TestCredentialsPolicy_Struct(t *testing.T) {
 		t.Errorf("Change.RequirePasswordEveryXDays = %v, want 90", policy.Change.RequirePasswordEveryXDays)
 	}
 }
+
+// Tests for nil session and additional edge cases
+
+func TestList_InvalidSession(t *testing.T) {
+	_, err := List(context.Background(), nil, ListOptions{})
+	if err == nil {
+		t.Error("List() expected error for nil session")
+	}
+}
+
+func TestList_AllOptions(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PlatformsResponse{Platforms: []Platform{}, Total: 0})
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	activeTrue := true
+	opts := ListOptions{
+		Search:       "Win",
+		SystemType:   "Windows",
+		PlatformType: "Regular",
+		Active:       &activeTrue,
+	}
+	_, err := List(context.Background(), sess, opts)
+	if err != nil {
+		t.Errorf("List() unexpected error: %v", err)
+	}
+}
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("Get() expected error for nil session")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("Get() expected error for server error")
+	}
+}
+
+func TestActivate_InvalidSession(t *testing.T) {
+	err := Activate(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("Activate() expected error for nil session")
+	}
+}
+
+func TestActivate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Activate(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("Activate() expected error for server error")
+	}
+}
+
+func TestDeactivate_InvalidSession(t *testing.T) {
+	err := Deactivate(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("Deactivate() expected error for nil session")
+	}
+}
+
+func TestDeactivate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Deactivate(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("Deactivate() expected error for server error")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("Delete() expected error for nil session")
+	}
+}
+
+func TestDelete_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Delete(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("Delete() expected error for server error")
+	}
+}
+
+func TestDuplicate_InvalidSession(t *testing.T) {
+	_, err := Duplicate(context.Background(), nil, "WinServerLocal", DuplicateOptions{Name: "Copy"})
+	if err == nil {
+		t.Error("Duplicate() expected error for nil session")
+	}
+}
+
+func TestDuplicate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Duplicate(context.Background(), sess, "WinServerLocal", DuplicateOptions{Name: "Copy"})
+	if err == nil {
+		t.Error("Duplicate() expected error for server error")
+	}
+}
+
+func TestExportPlatform_InvalidSession(t *testing.T) {
+	_, err := ExportPlatform(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("ExportPlatform() expected error for nil session")
+	}
+}
+
+func TestExportPlatform_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ExportPlatform(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("ExportPlatform() expected error for server error")
+	}
+}
+
+func TestImportPlatform_InvalidSession(t *testing.T) {
+	err := ImportPlatform(context.Background(), nil, []byte("ZIP_DATA"))
+	if err == nil {
+		t.Error("ImportPlatform() expected error for nil session")
+	}
+}
+
+func TestImportPlatform_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := ImportPlatform(context.Background(), sess, []byte("ZIP_DATA"))
+	if err == nil {
+		t.Error("ImportPlatform() expected error for server error")
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	activeTrue := true
+	opts := ListOptions{
+		Search:       "Windows",
+		SystemType:   "Windows",
+		PlatformType: "Regular",
+		Active:       &activeTrue,
+	}
+
+	if opts.Search != "Windows" {
+		t.Errorf("Search = %v, want Windows", opts.Search)
+	}
+	if opts.SystemType != "Windows" {
+		t.Errorf("SystemType = %v, want Windows", opts.SystemType)
+	}
+	if *opts.Active != true {
+		t.Errorf("Active = %v, want true", *opts.Active)
+	}
+}
+
+func TestDuplicateOptions_Struct(t *testing.T) {
+	opts := DuplicateOptions{
+		Name:        "WinServerLocal_Copy",
+		Description: "Copy of WinServerLocal platform",
+	}
+
+	if opts.Name != "WinServerLocal_Copy" {
+		t.Errorf("Name = %v, want WinServerLocal_Copy", opts.Name)
+	}
+}

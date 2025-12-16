@@ -472,3 +472,200 @@ func TestAuthMethod_Struct(t *testing.T) {
 		t.Error("AllowInternalScripts should be true")
 	}
 }
+
+func TestList_InvalidSession(t *testing.T) {
+	_, err := List(context.Background(), nil, ListOptions{})
+	if err == nil {
+		t.Error("List() with nil session expected error, got nil")
+	}
+}
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, "App1")
+	if err == nil {
+		t.Error("Get() with nil session expected error, got nil")
+	}
+}
+
+func TestCreate_InvalidSession(t *testing.T) {
+	err := Create(context.Background(), nil, CreateOptions{AppID: "App1"})
+	if err == nil {
+		t.Error("Create() with nil session expected error, got nil")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, "App1")
+	if err == nil {
+		t.Error("Delete() with nil session expected error, got nil")
+	}
+}
+
+func TestListAuthMethods_InvalidSession(t *testing.T) {
+	_, err := ListAuthMethods(context.Background(), nil, "App1")
+	if err == nil {
+		t.Error("ListAuthMethods() with nil session expected error, got nil")
+	}
+}
+
+func TestAddAuthMethod_InvalidSession(t *testing.T) {
+	err := AddAuthMethod(context.Background(), nil, "App1", AddAuthMethodOptions{AuthType: "path", AuthValue: "/app"})
+	if err == nil {
+		t.Error("AddAuthMethod() with nil session expected error, got nil")
+	}
+}
+
+func TestRemoveAuthMethod_InvalidSession(t *testing.T) {
+	err := RemoveAuthMethod(context.Background(), nil, "App1", "auth-123")
+	if err == nil {
+		t.Error("RemoveAuthMethod() with nil session expected error, got nil")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, "App1")
+	if err == nil {
+		t.Error("Get() expected error for server error")
+	}
+}
+
+func TestCreate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Create(context.Background(), sess, CreateOptions{AppID: "App1"})
+	if err == nil {
+		t.Error("Create() expected error for server error")
+	}
+}
+
+func TestDelete_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Delete(context.Background(), sess, "App1")
+	if err == nil {
+		t.Error("Delete() expected error for server error")
+	}
+}
+
+func TestListAuthMethods_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ListAuthMethods(context.Background(), sess, "App1")
+	if err == nil {
+		t.Error("ListAuthMethods() expected error for server error")
+	}
+}
+
+func TestAddAuthMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := AddAuthMethod(context.Background(), sess, "App1", AddAuthMethodOptions{AuthType: "path", AuthValue: "/app"})
+	if err == nil {
+		t.Error("AddAuthMethod() expected error for server error")
+	}
+}
+
+func TestRemoveAuthMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := RemoveAuthMethod(context.Background(), sess, "App1", "auth-123")
+	if err == nil {
+		t.Error("RemoveAuthMethod() expected error for server error")
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	opts := ListOptions{
+		Location:     "\\Applications",
+		SubLocations: true,
+	}
+
+	if opts.Location != "\\Applications" {
+		t.Errorf("Location = %v, want \\Applications", opts.Location)
+	}
+	if !opts.SubLocations {
+		t.Error("SubLocations should be true")
+	}
+}
+
+func TestCreateOptions_Struct(t *testing.T) {
+	opts := CreateOptions{
+		AppID:               "NewApp",
+		Description:         "New Application",
+		Location:            "\\Applications",
+		AccessPermittedFrom: 9,
+		AccessPermittedTo:   17,
+		ExpirationDate:      "2025-12-31",
+		Disabled:            false,
+		BusinessOwnerFName:  "John",
+		BusinessOwnerLName:  "Doe",
+		BusinessOwnerEmail:  "john@example.com",
+		BusinessOwnerPhone:  "555-1234",
+	}
+
+	if opts.AppID != "NewApp" {
+		t.Errorf("AppID = %v, want NewApp", opts.AppID)
+	}
+	if opts.AccessPermittedFrom != 9 {
+		t.Errorf("AccessPermittedFrom = %v, want 9", opts.AccessPermittedFrom)
+	}
+}
+
+func TestAddAuthMethodOptions_Struct(t *testing.T) {
+	opts := AddAuthMethodOptions{
+		AuthType:             "path",
+		AuthValue:            "/app/path",
+		Comment:              "Test auth method",
+		IsFolder:             false,
+		AllowInternalScripts: true,
+	}
+
+	if opts.AuthType != "path" {
+		t.Errorf("AuthType = %v, want path", opts.AuthType)
+	}
+}
+
+func TestApplicationsResponse_Struct(t *testing.T) {
+	resp := ApplicationsResponse{
+		Applications: []Application{
+			{AppID: "App1", Description: "Application 1"},
+			{AppID: "App2", Description: "Application 2"},
+		},
+	}
+
+	if len(resp.Applications) != 2 {
+		t.Errorf("Applications length = %v, want 2", len(resp.Applications))
+	}
+}

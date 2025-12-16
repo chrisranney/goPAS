@@ -280,3 +280,85 @@ func TestVaultHealth_Struct(t *testing.T) {
 		t.Errorf("HealthDetails = %v, want All systems operational", health.HealthDetails)
 	}
 }
+
+func TestListComponentSummary_InvalidSession(t *testing.T) {
+	_, err := ListComponentSummary(context.Background(), nil)
+	if err == nil {
+		t.Error("ListComponentSummary() with nil session expected error, got nil")
+	}
+}
+
+func TestGetComponentDetail_InvalidSession(t *testing.T) {
+	_, err := GetComponentDetail(context.Background(), nil, "vault-1")
+	if err == nil {
+		t.Error("GetComponentDetail() with nil session expected error, got nil")
+	}
+}
+
+func TestGetVaultHealth_InvalidSession(t *testing.T) {
+	_, err := GetVaultHealth(context.Background(), nil)
+	if err == nil {
+		t.Error("GetVaultHealth() with nil session expected error, got nil")
+	}
+}
+
+func TestComponentSummaryResponse_Struct(t *testing.T) {
+	resp := ComponentSummaryResponse{
+		Components: []ComponentSummary{
+			{ComponentID: "1", ComponentName: "Vault"},
+			{ComponentID: "2", ComponentName: "CPM"},
+		},
+	}
+
+	if len(resp.Components) != 2 {
+		t.Errorf("Components length = %v, want 2", len(resp.Components))
+	}
+}
+
+func TestListComponentSummary_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ListComponentSummary(context.Background(), sess)
+	if err == nil {
+		t.Error("ListComponentSummary() expected error for invalid JSON")
+	}
+}
+
+func TestGetComponentDetail_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetComponentDetail(context.Background(), sess, "vault-1")
+	if err == nil {
+		t.Error("GetComponentDetail() expected error for invalid JSON")
+	}
+}
+
+func TestGetVaultHealth_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetVaultHealth(context.Background(), sess)
+	if err == nil {
+		t.Error("GetVaultHealth() expected error for invalid JSON")
+	}
+}
