@@ -856,3 +856,553 @@ func TestGroupMembership_Struct(t *testing.T) {
 func boolPtr(b bool) *bool {
 	return &b
 }
+
+// Tests for groups.go
+
+func TestListGroups(t *testing.T) {
+	tests := []struct {
+		name           string
+		opts           ListGroupsOptions
+		serverResponse *GroupsResponse
+		serverStatus   int
+		wantErr        bool
+	}{
+		{
+			name: "successful list",
+			opts: ListGroupsOptions{},
+			serverResponse: &GroupsResponse{
+				Value: []Group{
+					{ID: 1, GroupName: "Vault Admins"},
+					{ID: 2, GroupName: "Safe Managers"},
+				},
+				Count: 2,
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name: "list with search",
+			opts: ListGroupsOptions{Search: "Admin"},
+			serverResponse: &GroupsResponse{
+				Value: []Group{
+					{ID: 1, GroupName: "Vault Admins"},
+				},
+				Count: 1,
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name: "list with all options",
+			opts: ListGroupsOptions{
+				Search:         "admin",
+				Sort:           "groupName",
+				Offset:         10,
+				Limit:          25,
+				Filter:         "groupType eq Vault",
+				IncludeMembers: true,
+			},
+			serverResponse: &GroupsResponse{
+				Value: []Group{},
+				Count: 0,
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:         "server error",
+			opts:         ListGroupsOptions{},
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					t.Errorf("Expected GET request, got %s", r.Method)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.serverStatus)
+				if tt.serverResponse != nil {
+					json.NewEncoder(w).Encode(tt.serverResponse)
+				}
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			result, err := ListGroups(context.Background(), sess, tt.opts)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("ListGroups() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("ListGroups() unexpected error: %v", err)
+				return
+			}
+
+			if result.Count != tt.serverResponse.Count {
+				t.Errorf("ListGroups().Count = %v, want %v", result.Count, tt.serverResponse.Count)
+			}
+		})
+	}
+}
+
+func TestListGroups_InvalidSession(t *testing.T) {
+	_, err := ListGroups(context.Background(), nil, ListGroupsOptions{})
+	if err == nil {
+		t.Error("ListGroups() expected error for nil session, got nil")
+	}
+}
+
+func TestGetGroup(t *testing.T) {
+	tests := []struct {
+		name           string
+		groupID        int
+		serverResponse *Group
+		serverStatus   int
+		wantErr        bool
+	}{
+		{
+			name:    "successful get",
+			groupID: 1,
+			serverResponse: &Group{
+				ID:          1,
+				GroupName:   "Vault Admins",
+				Description: "Vault administrators group",
+				Location:    "\\",
+				GroupType:   "Vault",
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:         "not found",
+			groupID:      9999,
+			serverStatus: http.StatusNotFound,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.serverStatus)
+				if tt.serverResponse != nil {
+					json.NewEncoder(w).Encode(tt.serverResponse)
+				}
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			result, err := GetGroup(context.Background(), sess, tt.groupID)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetGroup() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("GetGroup() unexpected error: %v", err)
+				return
+			}
+
+			if result.ID != tt.serverResponse.ID {
+				t.Errorf("GetGroup().ID = %v, want %v", result.ID, tt.serverResponse.ID)
+			}
+		})
+	}
+}
+
+func TestGetGroup_InvalidSession(t *testing.T) {
+	_, err := GetGroup(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("GetGroup() expected error for nil session, got nil")
+	}
+}
+
+func TestCreateGroup(t *testing.T) {
+	tests := []struct {
+		name           string
+		opts           CreateGroupOptions
+		serverResponse *Group
+		serverStatus   int
+		wantErr        bool
+	}{
+		{
+			name: "successful create",
+			opts: CreateGroupOptions{
+				GroupName:   "New Group",
+				Description: "A new group",
+				Location:    "\\",
+			},
+			serverResponse: &Group{
+				ID:          10,
+				GroupName:   "New Group",
+				Description: "A new group",
+			},
+			serverStatus: http.StatusCreated,
+			wantErr:      false,
+		},
+		{
+			name: "missing group name",
+			opts: CreateGroupOptions{
+				Description: "Missing name",
+			},
+			wantErr: true,
+		},
+		{
+			name: "server error",
+			opts: CreateGroupOptions{
+				GroupName: "Test",
+			},
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodPost {
+					t.Errorf("Expected POST request, got %s", r.Method)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.serverStatus)
+				if tt.serverResponse != nil {
+					json.NewEncoder(w).Encode(tt.serverResponse)
+				}
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			result, err := CreateGroup(context.Background(), sess, tt.opts)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("CreateGroup() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("CreateGroup() unexpected error: %v", err)
+				return
+			}
+
+			if result.GroupName != tt.serverResponse.GroupName {
+				t.Errorf("CreateGroup().GroupName = %v, want %v", result.GroupName, tt.serverResponse.GroupName)
+			}
+		})
+	}
+}
+
+func TestCreateGroup_InvalidSession(t *testing.T) {
+	_, err := CreateGroup(context.Background(), nil, CreateGroupOptions{GroupName: "Test"})
+	if err == nil {
+		t.Error("CreateGroup() expected error for nil session, got nil")
+	}
+}
+
+func TestDeleteGroup(t *testing.T) {
+	tests := []struct {
+		name         string
+		groupID      int
+		serverStatus int
+		wantErr      bool
+	}{
+		{
+			name:         "successful delete",
+			groupID:      1,
+			serverStatus: http.StatusNoContent,
+			wantErr:      false,
+		},
+		{
+			name:         "not found",
+			groupID:      9999,
+			serverStatus: http.StatusNotFound,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodDelete {
+					t.Errorf("Expected DELETE request, got %s", r.Method)
+				}
+				w.WriteHeader(tt.serverStatus)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			err := DeleteGroup(context.Background(), sess, tt.groupID)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("DeleteGroup() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("DeleteGroup() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestDeleteGroup_InvalidSession(t *testing.T) {
+	err := DeleteGroup(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("DeleteGroup() expected error for nil session, got nil")
+	}
+}
+
+func TestAddGroupMember(t *testing.T) {
+	tests := []struct {
+		name         string
+		groupID      int
+		opts         AddGroupMemberOptions
+		serverStatus int
+		wantErr      bool
+	}{
+		{
+			name:    "successful add by ID",
+			groupID: 1,
+			opts: AddGroupMemberOptions{
+				MemberID: 10,
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:    "successful add by name",
+			groupID: 1,
+			opts: AddGroupMemberOptions{
+				MemberName: "testuser",
+				DomainName: "EXAMPLE",
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:    "missing member ID and name",
+			groupID: 1,
+			opts:    AddGroupMemberOptions{},
+			wantErr: true,
+		},
+		{
+			name:    "server error",
+			groupID: 1,
+			opts: AddGroupMemberOptions{
+				MemberID: 10,
+			},
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodPost {
+					t.Errorf("Expected POST request, got %s", r.Method)
+				}
+				w.WriteHeader(tt.serverStatus)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			err := AddGroupMember(context.Background(), sess, tt.groupID, tt.opts)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("AddGroupMember() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("AddGroupMember() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestAddGroupMember_InvalidSession(t *testing.T) {
+	err := AddGroupMember(context.Background(), nil, 1, AddGroupMemberOptions{MemberID: 10})
+	if err == nil {
+		t.Error("AddGroupMember() expected error for nil session, got nil")
+	}
+}
+
+func TestRemoveGroupMember(t *testing.T) {
+	tests := []struct {
+		name         string
+		groupID      int
+		memberName   string
+		serverStatus int
+		wantErr      bool
+	}{
+		{
+			name:         "successful remove",
+			groupID:      1,
+			memberName:   "testuser",
+			serverStatus: http.StatusNoContent,
+			wantErr:      false,
+		},
+		{
+			name:       "empty member name",
+			groupID:    1,
+			memberName: "",
+			wantErr:    true,
+		},
+		{
+			name:         "server error",
+			groupID:      1,
+			memberName:   "testuser",
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodDelete {
+					t.Errorf("Expected DELETE request, got %s", r.Method)
+				}
+				w.WriteHeader(tt.serverStatus)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			err := RemoveGroupMember(context.Background(), sess, tt.groupID, tt.memberName)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("RemoveGroupMember() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("RemoveGroupMember() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestRemoveGroupMember_InvalidSession(t *testing.T) {
+	err := RemoveGroupMember(context.Background(), nil, 1, "testuser")
+	if err == nil {
+		t.Error("RemoveGroupMember() expected error for nil session, got nil")
+	}
+}
+
+func TestListGroupMembers(t *testing.T) {
+	tests := []struct {
+		name           string
+		groupID        int
+		serverResponse []GroupMemberDetail
+		serverStatus   int
+		wantErr        bool
+	}{
+		{
+			name:    "successful list",
+			groupID: 1,
+			serverResponse: []GroupMemberDetail{
+				{ID: 1, Username: "admin", GroupID: 1},
+				{ID: 2, Username: "user1", GroupID: 1, DomainName: "EXAMPLE"},
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:         "server error",
+			groupID:      1,
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					t.Errorf("Expected GET request, got %s", r.Method)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.serverStatus)
+				response := struct {
+					Members []GroupMemberDetail `json:"members"`
+				}{Members: tt.serverResponse}
+				json.NewEncoder(w).Encode(response)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+
+			result, err := ListGroupMembers(context.Background(), sess, tt.groupID)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("ListGroupMembers() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("ListGroupMembers() unexpected error: %v", err)
+				return
+			}
+
+			if len(result) != len(tt.serverResponse) {
+				t.Errorf("ListGroupMembers() returned %d members, want %d", len(result), len(tt.serverResponse))
+			}
+		})
+	}
+}
+
+func TestListGroupMembers_InvalidSession(t *testing.T) {
+	_, err := ListGroupMembers(context.Background(), nil, 1)
+	if err == nil {
+		t.Error("ListGroupMembers() expected error for nil session, got nil")
+	}
+}
+
+func TestGroup_Struct(t *testing.T) {
+	group := Group{
+		ID:          1,
+		GroupName:   "Test Group",
+		Description: "A test group",
+		Location:    "\\",
+		GroupType:   "Vault",
+		Directory:   "CyberArk",
+		DN:          "CN=Test Group,OU=Groups,DC=example,DC=com",
+		Members: []GroupMemberDetail{
+			{ID: 1, Username: "user1", GroupID: 1},
+		},
+	}
+
+	if group.GroupName != "Test Group" {
+		t.Errorf("GroupName = %v, want Test Group", group.GroupName)
+	}
+	if len(group.Members) != 1 {
+		t.Errorf("Members length = %v, want 1", len(group.Members))
+	}
+}
+
+func TestGroupMemberDetail_Struct(t *testing.T) {
+	member := GroupMemberDetail{
+		ID:         1,
+		Username:   "testuser",
+		GroupID:    10,
+		DomainName: "EXAMPLE",
+	}
+
+	if member.Username != "testuser" {
+		t.Errorf("Username = %v, want testuser", member.Username)
+	}
+}

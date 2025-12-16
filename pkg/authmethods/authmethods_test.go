@@ -617,3 +617,208 @@ func TestListAuthenticationMethods_InvalidSession(t *testing.T) {
 		t.Error("ListAuthenticationMethods() with nil session expected error, got nil")
 	}
 }
+
+func TestGetAuthenticationMethod_InvalidSession(t *testing.T) {
+	_, err := GetAuthenticationMethod(context.Background(), nil, "cyberark")
+	if err == nil {
+		t.Error("GetAuthenticationMethod() expected error for nil session")
+	}
+}
+
+func TestGetAuthenticationMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetAuthenticationMethod(context.Background(), sess, "cyberark")
+	if err == nil {
+		t.Error("GetAuthenticationMethod() expected error for server error")
+	}
+}
+
+func TestAddAuthenticationMethod_InvalidSession(t *testing.T) {
+	_, err := AddAuthenticationMethod(context.Background(), nil, AddAuthenticationMethodOptions{ID: "test", DisplayName: "Test"})
+	if err == nil {
+		t.Error("AddAuthenticationMethod() expected error for nil session")
+	}
+}
+
+func TestAddAuthenticationMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := AddAuthenticationMethod(context.Background(), sess, AddAuthenticationMethodOptions{ID: "test", DisplayName: "Test"})
+	if err == nil {
+		t.Error("AddAuthenticationMethod() expected error for server error")
+	}
+}
+
+func TestUpdateAuthenticationMethod_InvalidSession(t *testing.T) {
+	_, err := UpdateAuthenticationMethod(context.Background(), nil, "cyberark", UpdateAuthenticationMethodOptions{})
+	if err == nil {
+		t.Error("UpdateAuthenticationMethod() expected error for nil session")
+	}
+}
+
+func TestUpdateAuthenticationMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := UpdateAuthenticationMethod(context.Background(), sess, "cyberark", UpdateAuthenticationMethodOptions{})
+	if err == nil {
+		t.Error("UpdateAuthenticationMethod() expected error for server error")
+	}
+}
+
+func TestRemoveAuthenticationMethod_InvalidSession(t *testing.T) {
+	err := RemoveAuthenticationMethod(context.Background(), nil, "cyberark")
+	if err == nil {
+		t.Error("RemoveAuthenticationMethod() expected error for nil session")
+	}
+}
+
+func TestRemoveAuthenticationMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := RemoveAuthenticationMethod(context.Background(), sess, "cyberark")
+	if err == nil {
+		t.Error("RemoveAuthenticationMethod() expected error for server error")
+	}
+}
+
+func TestListUserAllowedAuthMethods_InvalidSession(t *testing.T) {
+	_, err := ListUserAllowedAuthMethods(context.Background(), nil, 123)
+	if err == nil {
+		t.Error("ListUserAllowedAuthMethods() expected error for nil session")
+	}
+}
+
+func TestListUserAllowedAuthMethods_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ListUserAllowedAuthMethods(context.Background(), sess, 123)
+	if err == nil {
+		t.Error("ListUserAllowedAuthMethods() expected error for server error")
+	}
+}
+
+func TestAddUserAllowedAuthMethod_InvalidSession(t *testing.T) {
+	err := AddUserAllowedAuthMethod(context.Background(), nil, 123, "cyberark")
+	if err == nil {
+		t.Error("AddUserAllowedAuthMethod() expected error for nil session")
+	}
+}
+
+func TestAddUserAllowedAuthMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := AddUserAllowedAuthMethod(context.Background(), sess, 123, "cyberark")
+	if err == nil {
+		t.Error("AddUserAllowedAuthMethod() expected error for server error")
+	}
+}
+
+func TestRemoveUserAllowedAuthMethod_InvalidSession(t *testing.T) {
+	err := RemoveUserAllowedAuthMethod(context.Background(), nil, 123, "cyberark")
+	if err == nil {
+		t.Error("RemoveUserAllowedAuthMethod() expected error for nil session")
+	}
+}
+
+func TestRemoveUserAllowedAuthMethod_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := RemoveUserAllowedAuthMethod(context.Background(), sess, 123, "cyberark")
+	if err == nil {
+		t.Error("RemoveUserAllowedAuthMethod() expected error for server error")
+	}
+}
+
+func TestListAllowedReferrers_InvalidSession(t *testing.T) {
+	_, err := ListAllowedReferrers(context.Background(), nil)
+	if err == nil {
+		t.Error("ListAllowedReferrers() expected error for nil session")
+	}
+}
+
+func TestListAllowedReferrers_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ListAllowedReferrers(context.Background(), sess)
+	if err == nil {
+		t.Error("ListAllowedReferrers() expected error for server error")
+	}
+}
+
+func TestAddAllowedReferrer_InvalidSession(t *testing.T) {
+	_, err := AddAllowedReferrer(context.Background(), nil, "https://example.com", false)
+	if err == nil {
+		t.Error("AddAllowedReferrer() expected error for nil session")
+	}
+}
+
+func TestAddAllowedReferrer_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := AddAllowedReferrer(context.Background(), sess, "https://example.com", false)
+	if err == nil {
+		t.Error("AddAllowedReferrer() expected error for server error")
+	}
+}
+
+func TestAuthenticationMethod_Struct(t *testing.T) {
+	method := AuthenticationMethod{
+		ID:          "cyberark",
+		DisplayName: "CyberArk Authentication",
+		Enabled:     true,
+		SignInLabel: "Sign In",
+	}
+
+	if method.ID != "cyberark" {
+		t.Errorf("ID = %v, want cyberark", method.ID)
+	}
+	if !method.Enabled {
+		t.Error("Enabled should be true")
+	}
+}

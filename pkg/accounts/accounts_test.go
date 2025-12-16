@@ -1092,3 +1092,488 @@ func overrideAPIURL(t *testing.T, c *client.Client, serverURL string) *client.Cl
 	// Since we can't directly modify apiURL, we create a wrapper
 	return newClient
 }
+
+// Tests for linked_accounts.go
+
+func TestLinkAccount(t *testing.T) {
+	tests := []struct {
+		name            string
+		accountID       string
+		linkedAccountID string
+		opts            LinkAccountOptions
+		serverStatus    int
+		wantErr         bool
+	}{
+		{
+			name:            "successful link",
+			accountID:       "123",
+			linkedAccountID: "456",
+			opts:            LinkAccountOptions{Safe: "TestSafe", ExtraPassID: 1},
+			serverStatus:    http.StatusOK,
+			wantErr:         false,
+		},
+		{
+			name:            "empty account ID",
+			accountID:       "",
+			linkedAccountID: "456",
+			opts:            LinkAccountOptions{Safe: "TestSafe", ExtraPassID: 1},
+			wantErr:         true,
+		},
+		{
+			name:            "empty linked account ID",
+			accountID:       "123",
+			linkedAccountID: "",
+			opts:            LinkAccountOptions{Safe: "TestSafe", ExtraPassID: 1},
+			wantErr:         true,
+		},
+		{
+			name:            "server error",
+			accountID:       "123",
+			linkedAccountID: "456",
+			opts:            LinkAccountOptions{Safe: "TestSafe", ExtraPassID: 1},
+			serverStatus:    http.StatusInternalServerError,
+			wantErr:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.serverStatus)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+			sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+			err := LinkAccount(context.Background(), sess, tt.accountID, tt.linkedAccountID, tt.opts)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("LinkAccount() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("LinkAccount() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestLinkAccount_InvalidSession(t *testing.T) {
+	err := LinkAccount(context.Background(), nil, "123", "456", LinkAccountOptions{})
+	if err == nil {
+		t.Error("LinkAccount() expected error for nil session")
+	}
+}
+
+func TestUnlinkAccount(t *testing.T) {
+	tests := []struct {
+		name         string
+		accountID    string
+		extraPassID  int
+		serverStatus int
+		wantErr      bool
+	}{
+		{
+			name:         "successful unlink",
+			accountID:    "123",
+			extraPassID:  1,
+			serverStatus: http.StatusNoContent,
+			wantErr:      false,
+		},
+		{
+			name:         "unlink extraPassID 2",
+			accountID:    "123",
+			extraPassID:  2,
+			serverStatus: http.StatusNoContent,
+			wantErr:      false,
+		},
+		{
+			name:         "unlink extraPassID 3",
+			accountID:    "123",
+			extraPassID:  3,
+			serverStatus: http.StatusNoContent,
+			wantErr:      false,
+		},
+		{
+			name:        "empty account ID",
+			accountID:   "",
+			extraPassID: 1,
+			wantErr:     true,
+		},
+		{
+			name:        "invalid extraPassID 0",
+			accountID:   "123",
+			extraPassID: 0,
+			wantErr:     true,
+		},
+		{
+			name:        "invalid extraPassID 4",
+			accountID:   "123",
+			extraPassID: 4,
+			wantErr:     true,
+		},
+		{
+			name:         "server error",
+			accountID:    "123",
+			extraPassID:  1,
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.serverStatus)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+			sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+			err := UnlinkAccount(context.Background(), sess, tt.accountID, tt.extraPassID)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("UnlinkAccount() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("UnlinkAccount() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestUnlinkAccount_InvalidSession(t *testing.T) {
+	err := UnlinkAccount(context.Background(), nil, "123", 1)
+	if err == nil {
+		t.Error("UnlinkAccount() expected error for nil session")
+	}
+}
+
+func TestGetLinkedAccounts(t *testing.T) {
+	tests := []struct {
+		name           string
+		accountID      string
+		serverResponse []LinkedAccount
+		serverStatus   int
+		wantErr        bool
+	}{
+		{
+			name:      "successful get linked accounts",
+			accountID: "123",
+			serverResponse: []LinkedAccount{
+				{ID: "456", Name: "linked-account-1", SafeName: "TestSafe"},
+				{ID: "789", Name: "linked-account-2", SafeName: "TestSafe"},
+			},
+			serverStatus: http.StatusOK,
+			wantErr:      false,
+		},
+		{
+			name:           "empty linked accounts",
+			accountID:      "123",
+			serverResponse: []LinkedAccount{},
+			serverStatus:   http.StatusOK,
+			wantErr:        false,
+		},
+		{
+			name:      "empty account ID",
+			accountID: "",
+			wantErr:   true,
+		},
+		{
+			name:         "server error",
+			accountID:    "123",
+			serverStatus: http.StatusInternalServerError,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.serverStatus)
+				response := struct {
+					LinkedAccounts []LinkedAccount `json:"LinkedAccounts"`
+				}{LinkedAccounts: tt.serverResponse}
+				json.NewEncoder(w).Encode(response)
+			})
+
+			sess, server := createTestSession(t, handler)
+			defer server.Close()
+			sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+			result, err := GetLinkedAccounts(context.Background(), sess, tt.accountID)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetLinkedAccounts() expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("GetLinkedAccounts() unexpected error: %v", err)
+				return
+			}
+
+			if len(result) != len(tt.serverResponse) {
+				t.Errorf("GetLinkedAccounts() returned %d accounts, want %d", len(result), len(tt.serverResponse))
+			}
+		})
+	}
+}
+
+func TestGetLinkedAccounts_InvalidSession(t *testing.T) {
+	_, err := GetLinkedAccounts(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("GetLinkedAccounts() expected error for nil session")
+	}
+}
+
+func TestDelete_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+	sess.Client = overrideAPIURL(t, sess.Client, server.URL)
+
+	err := Delete(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("Delete() expected error for server error, got nil")
+	}
+}
+
+func TestLinkedAccount_Struct(t *testing.T) {
+	la := LinkedAccount{
+		ID:         "123",
+		Name:       "linked-account",
+		SafeName:   "TestSafe",
+		ExtraPass1: "extrapass1",
+		ExtraPass2: "extrapass2",
+		ExtraPass3: "extrapass3",
+	}
+
+	if la.ID.String() != "123" {
+		t.Errorf("LinkedAccount.ID = %v, want 123", la.ID)
+	}
+	if la.Name != "linked-account" {
+		t.Errorf("LinkedAccount.Name = %v, want linked-account", la.Name)
+	}
+}
+
+func TestLinkAccountOptions_Struct(t *testing.T) {
+	opts := LinkAccountOptions{
+		Safe:        "TestSafe",
+		ExtraPassID: 1,
+		Name:        "linked-name",
+		Folder:      "Root",
+	}
+
+	if opts.Safe != "TestSafe" {
+		t.Errorf("LinkAccountOptions.Safe = %v, want TestSafe", opts.Safe)
+	}
+	if opts.ExtraPassID != 1 {
+		t.Errorf("LinkAccountOptions.ExtraPassID = %v, want 1", opts.ExtraPassID)
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	opts := ListOptions{
+		Search:     "admin",
+		SearchType: "contains",
+		Sort:       "name",
+		Offset:     10,
+		Limit:      50,
+		Filter:     "safeName eq Test",
+		SafeName:   "TestSafe",
+	}
+
+	if opts.Search != "admin" {
+		t.Errorf("ListOptions.Search = %v, want admin", opts.Search)
+	}
+	if opts.Limit != 50 {
+		t.Errorf("ListOptions.Limit = %v, want 50", opts.Limit)
+	}
+}
+
+func TestCreateOptions_Struct(t *testing.T) {
+	opts := CreateOptions{
+		Name:       "test-account",
+		Address:    "server.example.com",
+		UserName:   "admin",
+		PlatformID: "WinServerLocal",
+		SafeName:   "TestSafe",
+		SecretType: "password",
+		Secret:     "mysecret",
+		PlatformAccountProperties: map[string]interface{}{
+			"LogonDomain": "DOMAIN",
+		},
+		SecretManagement: &SecretManagement{
+			AutomaticManagementEnabled: true,
+		},
+		RemoteMachinesAccess: &RemoteMachinesAccess{
+			RemoteMachines:                   "server1,server2",
+			AccessRestrictedToRemoteMachines: true,
+		},
+	}
+
+	if opts.Name != "test-account" {
+		t.Errorf("CreateOptions.Name = %v, want test-account", opts.Name)
+	}
+	if opts.SecretManagement == nil {
+		t.Error("CreateOptions.SecretManagement should not be nil")
+	}
+}
+
+func TestUpdateOptions_Struct(t *testing.T) {
+	opts := UpdateOptions{
+		Name:       "updated-account",
+		Address:    "newserver.example.com",
+		UserName:   "newadmin",
+		PlatformID: "UnixSSH",
+		PlatformAccountProperties: map[string]interface{}{
+			"Port": "22",
+		},
+		SecretManagement: &SecretManagement{
+			AutomaticManagementEnabled: false,
+			ManualManagementReason:     "test reason",
+		},
+		RemoteMachinesAccess: &RemoteMachinesAccess{
+			RemoteMachines: "server3",
+		},
+	}
+
+	if opts.Name != "updated-account" {
+		t.Errorf("UpdateOptions.Name = %v, want updated-account", opts.Name)
+	}
+}
+
+func TestPatchOperation_Struct(t *testing.T) {
+	ops := []PatchOperation{
+		{Op: "replace", Path: "/name", Value: "newname"},
+		{Op: "add", Path: "/property", Value: "value"},
+		{Op: "remove", Path: "/oldprop"},
+	}
+
+	if ops[0].Op != "replace" {
+		t.Errorf("PatchOperation.Op = %v, want replace", ops[0].Op)
+	}
+	if ops[2].Value != nil {
+		t.Errorf("PatchOperation.Value for remove should be nil")
+	}
+}
+
+func TestSecretManagement_Struct(t *testing.T) {
+	sm := SecretManagement{
+		AutomaticManagementEnabled: true,
+		ManualManagementReason:     "test",
+		Status:                     "verified",
+		LastModifiedTime:           1705315800,
+		LastReconciledTime:         1705315900,
+		LastVerifiedTime:           1705316000,
+	}
+
+	if !sm.AutomaticManagementEnabled {
+		t.Error("SecretManagement.AutomaticManagementEnabled should be true")
+	}
+	if sm.Status != "verified" {
+		t.Errorf("SecretManagement.Status = %v, want verified", sm.Status)
+	}
+}
+
+func TestRemoteMachinesAccess_Struct(t *testing.T) {
+	rma := RemoteMachinesAccess{
+		RemoteMachines:                   "server1,server2",
+		AccessRestrictedToRemoteMachines: true,
+	}
+
+	if rma.RemoteMachines != "server1,server2" {
+		t.Errorf("RemoteMachinesAccess.RemoteMachines = %v, want server1,server2", rma.RemoteMachines)
+	}
+	if !rma.AccessRestrictedToRemoteMachines {
+		t.Error("RemoteMachinesAccess.AccessRestrictedToRemoteMachines should be true")
+	}
+}
+
+func TestAccountActivity_Struct(t *testing.T) {
+	activity := AccountActivity{
+		Time:     1705315800,
+		Action:   "Retrieve",
+		ClientID: "client-123",
+		ActionID: "action-456",
+		Alert:    true,
+		Reason:   "testing",
+		UserName: "admin",
+	}
+
+	if activity.Action != "Retrieve" {
+		t.Errorf("AccountActivity.Action = %v, want Retrieve", activity.Action)
+	}
+	if !activity.Alert {
+		t.Error("AccountActivity.Alert should be true")
+	}
+}
+
+func TestChangeCredentialsOptions_Struct(t *testing.T) {
+	opts := ChangeCredentialsOptions{
+		ChangeEntireGroup: true,
+	}
+
+	if !opts.ChangeEntireGroup {
+		t.Error("ChangeCredentialsOptions.ChangeEntireGroup should be true")
+	}
+}
+
+func TestAccount_Struct(t *testing.T) {
+	account := Account{
+		ID:                       "123",
+		Name:                     "test-account",
+		Address:                  "server.example.com",
+		UserName:                 "admin",
+		PlatformID:               "WinServerLocal",
+		SafeName:                 "TestSafe",
+		SecretType:               "password",
+		Secret:                   "secret123",
+		CreatedTime:              1705315800,
+		CategoryModificationTime: 1705315900,
+		PlatformAccountProperties: map[string]interface{}{
+			"LogonDomain": "DOMAIN",
+		},
+		SecretManagement: &SecretManagement{
+			AutomaticManagementEnabled: true,
+		},
+		RemoteMachinesAccess: &RemoteMachinesAccess{
+			RemoteMachines: "server1",
+		},
+	}
+
+	if account.Name != "test-account" {
+		t.Errorf("Account.Name = %v, want test-account", account.Name)
+	}
+	if account.SecretManagement == nil {
+		t.Error("Account.SecretManagement should not be nil")
+	}
+}
+
+func TestAccountsResponse_Struct(t *testing.T) {
+	resp := AccountsResponse{
+		Value: []Account{
+			{ID: "1", Name: "account1"},
+			{ID: "2", Name: "account2"},
+		},
+		Count:    2,
+		NextLink: "https://example.com/next",
+	}
+
+	if resp.Count != 2 {
+		t.Errorf("AccountsResponse.Count = %v, want 2", resp.Count)
+	}
+	if len(resp.Value) != 2 {
+		t.Errorf("AccountsResponse.Value length = %v, want 2", len(resp.Value))
+	}
+}

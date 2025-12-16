@@ -368,3 +368,101 @@ func TestPSMServer_Struct(t *testing.T) {
 		t.Errorf("PSMVersion = %v, want 12.6", server.PSMVersion)
 	}
 }
+
+func TestConnect_InvalidSession(t *testing.T) {
+	_, err := Connect(context.Background(), nil, "123", ConnectionRequest{})
+	if err == nil {
+		t.Error("Connect() with nil session expected error, got nil")
+	}
+}
+
+func TestAdHocConnect_InvalidSession(t *testing.T) {
+	_, err := AdHocConnect(context.Background(), nil, AdHocConnectRequest{
+		UserName:   "admin",
+		Secret:     "password",
+		Address:    "server.example.com",
+		PlatformID: "WinServerLocal",
+	})
+	if err == nil {
+		t.Error("AdHocConnect() with nil session expected error, got nil")
+	}
+}
+
+func TestGetConnectionComponents_InvalidSession(t *testing.T) {
+	_, err := GetConnectionComponents(context.Background(), nil, "WinServerLocal")
+	if err == nil {
+		t.Error("GetConnectionComponents() with nil session expected error, got nil")
+	}
+}
+
+func TestGetPSMServers_InvalidSession(t *testing.T) {
+	_, err := GetPSMServers(context.Background(), nil)
+	if err == nil {
+		t.Error("GetPSMServers() with nil session expected error, got nil")
+	}
+}
+
+func TestAdHocConnect_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := AdHocConnect(context.Background(), sess, AdHocConnectRequest{
+		UserName:   "admin",
+		Secret:     "password",
+		Address:    "server.example.com",
+		PlatformID: "WinServerLocal",
+	})
+	if err == nil {
+		t.Error("AdHocConnect() expected error for server error")
+	}
+}
+
+func TestGetConnectionComponents_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetConnectionComponents(context.Background(), sess, "WinServerLocal")
+	if err == nil {
+		t.Error("GetConnectionComponents() expected error for server error")
+	}
+}
+
+func TestAdHocConnectRequest_Struct(t *testing.T) {
+	req := AdHocConnectRequest{
+		UserName:    "admin",
+		Secret:      "password",
+		Address:     "server.example.com",
+		PlatformID:  "WinServerLocal",
+		ExtraFields: map[string]string{"Domain": "EXAMPLE"},
+		PSMConnectPrerequisites: &PSMPrerequisites{
+			ConnectionComponent: "PSM-RDP",
+			ConnectionType:      "RDP",
+		},
+	}
+
+	if req.UserName != "admin" {
+		t.Errorf("UserName = %v, want admin", req.UserName)
+	}
+	if req.PSMConnectPrerequisites == nil {
+		t.Error("PSMConnectPrerequisites should not be nil")
+	}
+}
+
+func TestConnectionComponent_Struct(t *testing.T) {
+	comp := ConnectionComponent{
+		PSMConnectorID: "PSM-RDP",
+		PSMServerID:    "PSMServer1",
+	}
+
+	if comp.PSMConnectorID != "PSM-RDP" {
+		t.Errorf("PSMConnectorID = %v, want PSM-RDP", comp.PSMConnectorID)
+	}
+}

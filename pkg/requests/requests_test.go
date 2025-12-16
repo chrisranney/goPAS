@@ -436,3 +436,215 @@ func TestAccountDetails_Struct(t *testing.T) {
 		t.Errorf("AccountID = %v, want acc-123", details.AccountID)
 	}
 }
+
+// Tests for nil session and additional edge cases
+
+func TestListIncoming_InvalidSession(t *testing.T) {
+	_, err := ListIncoming(context.Background(), nil, ListOptions{})
+	if err == nil {
+		t.Error("ListIncoming() expected error for nil session")
+	}
+}
+
+func TestListIncoming_AllOptions(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify query parameters
+		q := r.URL.Query()
+		if q.Get("onlyWaiting") != "true" {
+			t.Errorf("Expected onlyWaiting=true, got %s", q.Get("onlyWaiting"))
+		}
+		if q.Get("expired") != "true" {
+			t.Errorf("Expected expired=true, got %s", q.Get("expired"))
+		}
+		if q.Get("offset") != "10" {
+			t.Errorf("Expected offset=10, got %s", q.Get("offset"))
+		}
+		if q.Get("limit") != "50" {
+			t.Errorf("Expected limit=50, got %s", q.Get("limit"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(RequestsResponse{Requests: []Request{}, Total: 0})
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	opts := ListOptions{
+		OnlyWaiting: true,
+		Expired:     true,
+		Offset:      10,
+		Limit:       50,
+	}
+	_, err := ListIncoming(context.Background(), sess, opts)
+	if err != nil {
+		t.Errorf("ListIncoming() unexpected error: %v", err)
+	}
+}
+
+func TestListMyRequests_InvalidSession(t *testing.T) {
+	_, err := ListMyRequests(context.Background(), nil, ListOptions{})
+	if err == nil {
+		t.Error("ListMyRequests() expected error for nil session")
+	}
+}
+
+func TestListMyRequests_AllOptions(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		if q.Get("onlyWaiting") != "true" {
+			t.Errorf("Expected onlyWaiting=true, got %s", q.Get("onlyWaiting"))
+		}
+		if q.Get("expired") != "true" {
+			t.Errorf("Expected expired=true, got %s", q.Get("expired"))
+		}
+		if q.Get("offset") != "5" {
+			t.Errorf("Expected offset=5, got %s", q.Get("offset"))
+		}
+		if q.Get("limit") != "25" {
+			t.Errorf("Expected limit=25, got %s", q.Get("limit"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(RequestsResponse{Requests: []Request{}, Total: 0})
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	opts := ListOptions{
+		OnlyWaiting: true,
+		Expired:     true,
+		Offset:      5,
+		Limit:       25,
+	}
+	_, err := ListMyRequests(context.Background(), sess, opts)
+	if err != nil {
+		t.Errorf("ListMyRequests() unexpected error: %v", err)
+	}
+}
+
+func TestCreate_InvalidSession(t *testing.T) {
+	_, err := Create(context.Background(), nil, CreateOptions{AccountID: "123"})
+	if err == nil {
+		t.Error("Create() expected error for nil session")
+	}
+}
+
+func TestCreate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Create(context.Background(), sess, CreateOptions{AccountID: "123"})
+	if err == nil {
+		t.Error("Create() expected error for server error")
+	}
+}
+
+func TestApprove_InvalidSession(t *testing.T) {
+	_, err := Approve(context.Background(), nil, "123", ApproveOptions{})
+	if err == nil {
+		t.Error("Approve() expected error for nil session")
+	}
+}
+
+func TestApprove_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Approve(context.Background(), sess, "123", ApproveOptions{})
+	if err == nil {
+		t.Error("Approve() expected error for server error")
+	}
+}
+
+func TestDeny_InvalidSession(t *testing.T) {
+	_, err := Deny(context.Background(), nil, "123", DenyOptions{})
+	if err == nil {
+		t.Error("Deny() expected error for nil session")
+	}
+}
+
+func TestDeny_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Deny(context.Background(), sess, "123", DenyOptions{})
+	if err == nil {
+		t.Error("Deny() expected error for server error")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, "123")
+	if err == nil {
+		t.Error("Delete() expected error for nil session")
+	}
+}
+
+func TestDelete_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	err := Delete(context.Background(), sess, "123")
+	if err == nil {
+		t.Error("Delete() expected error for server error")
+	}
+}
+
+func TestCreateOptions_Struct(t *testing.T) {
+	opts := CreateOptions{
+		AccountID:              "acc-123",
+		Reason:                 "Maintenance",
+		TicketingSystemName:    "ServiceNow",
+		TicketID:               "INC001",
+		MultipleAccessRequired: true,
+		FromDate:               1705315800,
+		ToDate:                 1705920600,
+		AdditionalInfo:         map[string]string{"key": "value"},
+		UseConnect:             true,
+		ConnectionComponent:    "PSM-RDP",
+		ConnectionParams:       map[string]string{"param": "value"},
+	}
+
+	if opts.AccountID != "acc-123" {
+		t.Errorf("AccountID = %v, want acc-123", opts.AccountID)
+	}
+	if opts.TicketingSystemName != "ServiceNow" {
+		t.Errorf("TicketingSystemName = %v, want ServiceNow", opts.TicketingSystemName)
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	opts := ListOptions{
+		RequestorUserName: "admin",
+		SafeName:          "Safe1",
+		OnlyWaiting:       true,
+		Expired:           false,
+		Offset:            10,
+		Limit:             50,
+	}
+
+	if opts.RequestorUserName != "admin" {
+		t.Errorf("RequestorUserName = %v, want admin", opts.RequestorUserName)
+	}
+	if opts.Limit != 50 {
+		t.Errorf("Limit = %v, want 50", opts.Limit)
+	}
+}
