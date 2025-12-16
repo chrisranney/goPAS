@@ -320,3 +320,117 @@ func TestRequestJITAccess_InvalidSession(t *testing.T) {
 		t.Error("RequestJITAccess() with nil session expected error, got nil")
 	}
 }
+
+func TestRevokeJITAccess_InvalidSession(t *testing.T) {
+	err := RevokeJITAccess(context.Background(), nil, "acc-123")
+	if err == nil {
+		t.Error("RevokeJITAccess() with nil session expected error, got nil")
+	}
+}
+
+func TestGetJITAccessStatus_InvalidSession(t *testing.T) {
+	_, err := GetJITAccessStatus(context.Background(), nil, "acc-123")
+	if err == nil {
+		t.Error("GetJITAccessStatus() with nil session expected error, got nil")
+	}
+}
+
+func TestListEPVUserAccess_InvalidSession(t *testing.T) {
+	_, err := ListEPVUserAccess(context.Background(), nil, "acc-123")
+	if err == nil {
+		t.Error("ListEPVUserAccess() with nil session expected error, got nil")
+	}
+}
+
+func TestGetJITAccessStatus_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := GetJITAccessStatus(context.Background(), sess, "acc-123")
+	if err == nil {
+		t.Error("GetJITAccessStatus() expected error for server error")
+	}
+}
+
+func TestListEPVUserAccess_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := ListEPVUserAccess(context.Background(), sess, "acc-123")
+	if err == nil {
+		t.Error("ListEPVUserAccess() expected error for server error")
+	}
+}
+
+func TestJITAccessRequest_Struct(t *testing.T) {
+	req := JITAccessRequest{
+		Reason:              "Emergency access",
+		TicketingSystemName: "ServiceNow",
+		TicketID:            "INC0012345",
+	}
+
+	if req.Reason != "Emergency access" {
+		t.Errorf("Reason = %v, want Emergency access", req.Reason)
+	}
+	if req.TicketID != "INC0012345" {
+		t.Errorf("TicketID = %v, want INC0012345", req.TicketID)
+	}
+}
+
+func TestJITAccess_Struct(t *testing.T) {
+	access := JITAccess{
+		AccountID:      "acc-123",
+		Status:         "Granted",
+		RequestTime:    1705315800,
+		ExpirationTime: 1705319400,
+	}
+
+	if access.AccountID != "acc-123" {
+		t.Errorf("AccountID = %v, want acc-123", access.AccountID)
+	}
+	if access.Status != "Granted" {
+		t.Errorf("Status = %v, want Granted", access.Status)
+	}
+}
+
+func TestJITAccessStatus_Struct(t *testing.T) {
+	status := JITAccessStatus{
+		IsJITEnabled:      true,
+		HasActiveAccess:   true,
+		ExpirationTime:    1705319400,
+		RemainingDuration: 3600,
+	}
+
+	if !status.IsJITEnabled {
+		t.Error("IsJITEnabled should be true")
+	}
+	if !status.HasActiveAccess {
+		t.Error("HasActiveAccess should be true")
+	}
+	if status.RemainingDuration != 3600 {
+		t.Errorf("RemainingDuration = %v, want 3600", status.RemainingDuration)
+	}
+}
+
+func TestEPVUserAccess_Struct(t *testing.T) {
+	access := EPVUserAccess{
+		UserID:     1,
+		Username:   "admin",
+		AccessType: "Full",
+	}
+
+	if access.UserID != 1 {
+		t.Errorf("UserID = %v, want 1", access.UserID)
+	}
+	if access.Username != "admin" {
+		t.Errorf("Username = %v, want admin", access.Username)
+	}
+}

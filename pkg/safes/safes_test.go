@@ -472,3 +472,210 @@ func TestCreator_Struct(t *testing.T) {
 func intPtr(i int) *int {
 	return &i
 }
+
+func TestGet_InvalidSession(t *testing.T) {
+	_, err := Get(context.Background(), nil, "TestSafe")
+	if err == nil {
+		t.Error("Get() with nil session expected error, got nil")
+	}
+}
+
+func TestCreate_InvalidSession(t *testing.T) {
+	_, err := Create(context.Background(), nil, CreateOptions{SafeName: "NewSafe"})
+	if err == nil {
+		t.Error("Create() with nil session expected error, got nil")
+	}
+}
+
+func TestUpdate_InvalidSession(t *testing.T) {
+	_, err := Update(context.Background(), nil, "TestSafe", UpdateOptions{})
+	if err == nil {
+		t.Error("Update() with nil session expected error, got nil")
+	}
+}
+
+func TestDelete_InvalidSession(t *testing.T) {
+	err := Delete(context.Background(), nil, "TestSafe")
+	if err == nil {
+		t.Error("Delete() with nil session expected error, got nil")
+	}
+}
+
+func TestGet_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, "TestSafe")
+	if err == nil {
+		t.Error("Get() expected error for server error")
+	}
+}
+
+func TestCreate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Create(context.Background(), sess, CreateOptions{SafeName: "NewSafe"})
+	if err == nil {
+		t.Error("Create() expected error for server error")
+	}
+}
+
+func TestUpdate_ServerError(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Update(context.Background(), sess, "TestSafe", UpdateOptions{})
+	if err == nil {
+		t.Error("Update() expected error for server error")
+	}
+}
+
+func TestListOptions_Struct(t *testing.T) {
+	opts := ListOptions{
+		Search:            "Test",
+		Sort:              "safeName",
+		Offset:            0,
+		Limit:             25,
+		IncludeAccounts:   true,
+		ExtendedDetails:   true,
+	}
+
+	if opts.Search != "Test" {
+		t.Errorf("Search = %v, want Test", opts.Search)
+	}
+	if !opts.IncludeAccounts {
+		t.Error("IncludeAccounts should be true")
+	}
+}
+
+func TestCreateOptions_Struct(t *testing.T) {
+	opts := CreateOptions{
+		SafeName:                  "NewSafe",
+		Description:               "New safe description",
+		Location:                  "\\",
+		OLACEnabled:               true,
+		ManagingCPM:               "PasswordManager",
+		NumberOfVersionsRetention: intPtr(10),
+		NumberOfDaysRetention:     30,
+		AutoPurgeEnabled:          false,
+	}
+
+	if opts.SafeName != "NewSafe" {
+		t.Errorf("SafeName = %v, want NewSafe", opts.SafeName)
+	}
+	if *opts.NumberOfVersionsRetention != 10 {
+		t.Errorf("NumberOfVersionsRetention = %v, want 10", *opts.NumberOfVersionsRetention)
+	}
+}
+
+func TestUpdateOptions_Struct(t *testing.T) {
+	olacEnabled := true
+	opts := UpdateOptions{
+		SafeName:    "UpdatedSafe",
+		Description: "Updated description",
+		OLACEnabled: &olacEnabled,
+		ManagingCPM: "NewCPM",
+	}
+
+	if opts.Description != "Updated description" {
+		t.Errorf("Description = %v, want Updated description", opts.Description)
+	}
+	if *opts.OLACEnabled != true {
+		t.Error("OLACEnabled should be true")
+	}
+}
+
+func TestSafesResponse_Struct(t *testing.T) {
+	resp := SafesResponse{
+		Value: []Safe{
+			{SafeURLId: "Safe1", SafeName: "Safe1"},
+			{SafeURLId: "Safe2", SafeName: "Safe2"},
+		},
+		Count:    2,
+		NextLink: "https://example.com/api?offset=2",
+	}
+
+	if resp.Count != 2 {
+		t.Errorf("Count = %v, want 2", resp.Count)
+	}
+	if len(resp.Value) != 2 {
+		t.Errorf("Value length = %v, want 2", len(resp.Value))
+	}
+}
+
+func TestList_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := List(context.Background(), sess, ListOptions{})
+	if err == nil {
+		t.Error("List() expected error for invalid JSON")
+	}
+}
+
+func TestGet_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Get(context.Background(), sess, "TestSafe")
+	if err == nil {
+		t.Error("Get() expected error for invalid JSON")
+	}
+}
+
+func TestCreate_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Create(context.Background(), sess, CreateOptions{SafeName: "NewSafe"})
+	if err == nil {
+		t.Error("Create() expected error for invalid JSON")
+	}
+}
+
+func TestUpdate_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	})
+
+	sess, server := createTestSession(t, handler)
+	defer server.Close()
+
+	_, err := Update(context.Background(), sess, "TestSafe", UpdateOptions{})
+	if err == nil {
+		t.Error("Update() expected error for invalid JSON")
+	}
+}
